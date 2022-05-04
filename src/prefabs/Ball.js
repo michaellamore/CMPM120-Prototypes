@@ -10,7 +10,7 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     this.velX = 400;
     this.velY = 1000;
     this.acceleration = 1500;
-    this.drag = 2000;
+    this.drag = 1000;
     this.jump_velocity = -1000;
     this.setMaxVelocity(this.velX, this.velY)
     this.setTint(0x808080);
@@ -40,6 +40,7 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
   }
 
   update(){
+    // If it hits ANYTHING other than player, stop its movement
     if(this.body.touching.down || this.body.touching.left || this.body.touching.right){
       this.body.setAccelerationX(0);
     }
