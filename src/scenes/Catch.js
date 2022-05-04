@@ -11,21 +11,17 @@ class Catch extends Phaser.Scene{
   }
 
   create(){
-    let text = "Split yourself in half. Can fit in smaller spaces, and the player can teleport back to their other half. Collect things? Buttons?"
-    this.add.dom(width/2, 0, 'p', 'padding: 10px; background-color: black; color: white; width: 1280; height: 40px; font: 20px Arial; text-align: center;', text).setOrigin(0.5);
-
     // Variables and such
     this.physics.world.gravity.y = 3000;
-    this.currentAction = "none";
 
     // Input
     cursors = this.input.keyboard.createCursorKeys();
     keyAction = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
 
-    // Set up Scene
+    // Set up scene
     this.cameras.main.setBackgroundColor('#3256a8');
     
-    // Ground
+    // Ground and platforms
     this.ground = this.add.group();
     for(let i = 0; i < game.config.width; i += this.tileSize) {
       let groundTile = new Obstacle(this, i, height-this.tileSize, 'ground', 0);
@@ -42,7 +38,7 @@ class Catch extends Phaser.Scene{
 
 
     this.player = new Player(this, width/2, height-100, 'player', 0);
-
+    this.player.body.setCollideWorldBounds();
     this.physics.add.collider(this.player, this.ground);
 
     this.ballGroup = this.add.group({maxSize: 1, runChildUpdate: true});
@@ -52,19 +48,27 @@ class Catch extends Phaser.Scene{
   update(){
     this.player.update();
 
-    if(cursors.left.isDown) {
-      this.currentAction = "left";
-    } else if(cursors.right.isDown) {
-      this.currentAction = "right";
-    } else {
-      this.currentAction = "none";
+    // Player wants to do something
+    if(Phaser.Input.Keyboard.JustDown(keyAction)){
+      // If there's no ball yet, throw one
+      if(!this.ballGroup.isFull()){
+        this.throwBall();
+        this.player.changeScale(1, 0.75);
+      } else if (this.ballGroup.isFull()){ // If there's already a ball, teleport to it
+        let ball = this.ballGroup.getChildren()[0];
+        let offset = 10; // Offset is to prevent player from clipping into the collision, letting them go through obstacles
+        if(ball.currentAction == "right") this.player.teleport(ball.x-offset, ball.y)
+        else if(ball.currentAction == "left") this.player.teleport(ball.x+offset, ball.y)
+        else this.player.teleport(ball.x, ball.y-offset)
+        this.player.changeScale(0.75, 1);
+        ball.destroy();
+      }
     }
+  }
 
-    if(Phaser.Input.Keyboard.JustDown(keyAction) && !this.ballGroup.isFull()){
-      let ball = new Ball(this, this.player.x, this.player.y, 'player', 0, this.player);
-      ball.throw(this.currentAction);
-      this.ballGroup.add(ball);
-      this.player.scale = 0.75;
-    }
+  throwBall(){
+    let ball = new Ball(this, this.player.x, this.player.y, 'player', 0, this.player);
+    ball.throw();
+    this.ballGroup.add(ball);
   }
 }

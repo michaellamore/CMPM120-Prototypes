@@ -2,6 +2,7 @@
 
 let config = {
   type: Phaser.AUTO,
+  // This width/height makes it easier to scale up to 720p or 1080p
   width: 640,
   height: 360,
   parent: "phaser-canvas",
@@ -18,10 +19,7 @@ let config = {
       debug: false
     }
   },
-  dom:{
-    createContainer: true
-  },
-  scene: [Tetris]
+  scene: [Catch]
 }
 
 let game = new Phaser.Game(config);

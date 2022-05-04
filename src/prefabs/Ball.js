@@ -14,13 +14,22 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     this.jump_velocity = -1000;
     this.setMaxVelocity(this.velX, this.velY)
     this.setTint(0x808080);
+
+    // When initializing this object, check the last known input to get direction of throw
+    if(cursors.left.isDown) {
+      this.currentAction = "left";
+    } else if(cursors.right.isDown) {
+      this.currentAction = "right";
+    } else { // Standing still
+      this.currentAction = "none";
+    }
   }
   
-  throw(lastAction){
-    if (lastAction == "left") {
+  throw(){
+    if (this.currentAction == "left") {
       this.body.setAccelerationX(-this.acceleration);
       this.body.setVelocityY(-this.velX);
-    } else if (lastAction == "right"){
+    } else if (this.currentAction == "right"){
       this.body.setAccelerationX(this.acceleration);
       this.body.setVelocityY(this.velX);
     } else{
@@ -31,13 +40,8 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
   }
 
   update(){
-    if(this.body.touching.down){
+    if(this.body.touching.down || this.body.touching.left || this.body.touching.right){
       this.body.setAccelerationX(0);
-    }
-    if(Phaser.Input.Keyboard.JustDown(keyAction)){
-      this.player.teleport(this.x, this.y -10);
-      this.player.scale = 1;
-      this.destroy();
     }
   }
 }
