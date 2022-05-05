@@ -99,9 +99,9 @@ class Catch extends Phaser.Scene{
   }
 
   loadInteractables(){
-    this.buttonGroup = this.add.group();
+    this.buttonGroup = this.add.group({runChildUpdate: true});
     this.doorGroup = this.add.group({runChildUpdate: true});
-    this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=> {button.playerPressed()});
+    // this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=> {button.playerPressed()});
     this.physics.add.collider(this.playerGroup, this.doorGroup);
 
     let interactables = this.levelJSON.layers[1].objects;
@@ -109,7 +109,7 @@ class Catch extends Phaser.Scene{
       let properties = obj.properties[0];
       let offset = new Phaser.Math.Vector2(512, 480); // idk why I even need the offset, Tiled is wild
       if(properties.name == "button"){
-        let button = new Button(this, obj.x+offset.x, obj.y+offset.y, 'button', 0, properties.value)
+        let button = new Button(this, obj.x+offset.x, obj.y+offset.y, 'button', 0, this.playerGroup.getChildren(), properties.value)
         this.buttonGroup.add(button);
       }
       if(properties.name == "door"){
