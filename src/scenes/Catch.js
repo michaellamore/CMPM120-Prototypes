@@ -8,12 +8,16 @@ class Catch extends Phaser.Scene{
     this.load.path = "./assets/";
     this.load.image('player', 'testPlayer.png');
     this.load.image('ground', 'testGround.png');
+    this.load.image('button', 'button.png');
+
+    // Test level
+    this.load.image('tiles', "tiles.png");
+    this.load.tilemapTiledJSON('tilemap', 'testLevel.json');
   }
 
   create(){
     // Variables and such
-    this.physics.world.gravity.y = 3000;
-
+    this.physics.world.gravity.y = 2000;
     // Input
     cursors = this.input.keyboard.createCursorKeys();
     keyAction = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
@@ -22,27 +26,21 @@ class Catch extends Phaser.Scene{
     this.cameras.main.setBackgroundColor('#3256a8');
     
     // Ground and platforms
-    this.ground = this.add.group();
-    for(let i = 0; i < game.config.width; i += this.tileSize) {
-      let groundTile = new Obstacle(this, i, height-this.tileSize, 'ground', 0);
-      this.ground.add(groundTile);
-    }
-    for(let i = this.tileSize*7; i < game.config.width; i += this.tileSize) {
-      let groundTile = new Obstacle(this, i, this.tileSize*3, 'ground', 0);
-      this.ground.add(groundTile);
-    }
-    let obstacle1 = new Obstacle(this, this.tileSize*7, 0, 'ground', 0);
-    let obstacle2 = new Obstacle(this, this.tileSize*7, this.tileSize*1, 'ground', 0);
-    this.ground.add(obstacle1);
-    this.ground.add(obstacle2);
-
+    const map = this.make.tilemap({key: "tilemap", tileWidth: 32, tileHeight: 32});
+    const tileset = map.addTilesetImage("tempTileset", 'tiles', 32, 32, 0, 0);
+    const ground = map.createLayer('ground', tileset, 0, 0);
+    ground.setCollisionByProperty({collides: true});
 
     this.player = new Player(this, width/2, height-100, 'player', 0);
-    this.player.body.setCollideWorldBounds();
-    this.physics.add.collider(this.player, this.ground);
+    this.physics.add.collider(this.player, ground, ()=>console.log("collision registered"));
+    
+
+    const camera = this.cameras.main;
+    camera.startFollow(this.player, true, 0.2, 0.2);
+    camera.setDeadzone(64, 64);
 
     this.ballGroup = this.add.group({maxSize: 1, runChildUpdate: true});
-    this.physics.add.collider(this.ballGroup, this.ground);
+    this.physics.add.collider(this.ballGroup, ground);
   }
 
   update(){

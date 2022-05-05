@@ -8,10 +8,10 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     this.setDepth(1);
     // Variables to change the feel of player movement
     this.velX = 400;
-    this.velY = 1000;
+    this.velY = 800;
     this.acceleration = 1500;
     this.drag = 2000;
-    this.jump_velocity = -870;
+    this.jump_velocity = -650;
     this.scaleSpeed = 300; // in milliseconds
 
     this.setMaxVelocity(this.velX, this.velY);
@@ -29,7 +29,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     }
 
     // Jumping
-    if(this.body.touching.down && Phaser.Input.Keyboard.JustDown(cursors.up) && !keyAction.isDown) {
+    if(this.body.onFloor() && Phaser.Input.Keyboard.JustDown(cursors.up) && !keyAction.isDown) {
       this.body.setVelocityY(this.jump_velocity);
     }
   }
