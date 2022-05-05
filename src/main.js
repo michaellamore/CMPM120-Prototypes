@@ -9,7 +9,7 @@ let config = {
   pixelArt: true,
   zoom: 1,
   fps:{
-    // target: 60,
+    // target: 30,
     // forceSetTimeOut: true
   },
   physics: {

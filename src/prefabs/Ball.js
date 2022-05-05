@@ -5,13 +5,13 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     scene.physics.add.existing(this);
     this.setOrigin(0.5);
     this.player = player;
-    this.scale = 0.75;
+    this.scale = 0.5;
 
     this.velX = 400;
-    this.velY = 800;
+    this.velY = 700;
     this.acceleration = 1500;
     this.drag = 2000;
-    this.jump_velocity = -850;
+    this.jump_velocity = -750;
     this.setMaxVelocity(this.velX, this.velY)
     this.setTint(0x808080);
 

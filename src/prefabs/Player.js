@@ -8,11 +8,12 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     this.setDepth(1);
     // Variables to change the feel of player movement
     this.velX = 400;
-    this.velY = 800;
+    this.velY = 500;
     this.acceleration = 1500;
     this.drag = 2000;
-    this.jump_velocity = -650;
+    this.jump_velocity = -750;
     this.scaleSpeed = 300; // in milliseconds
+    this.setMass(100);
 
     this.setMaxVelocity(this.velX, this.velY);
   }

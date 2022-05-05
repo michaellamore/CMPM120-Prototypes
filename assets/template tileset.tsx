@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.5" tiledversion="1.6.0" name="asdfasfdsaf" tilewidth="32" tileheight="32" tilecount="24" columns="6">
- <image source="tiles.png" trans="1a1a4f" width="192" height="128"/>
+<tileset version="1.5" tiledversion="1.6.0" name="asdfasfdsaf" tilewidth="32" tileheight="32" tilecount="28" columns="7">
+ <image source="tiles.png" trans="1a1a4f" width="224" height="128"/>
  <tile id="0">
   <properties>
    <property name="collides" type="bool" value="true"/>
@@ -51,11 +51,8 @@
  </tile>
  <tile id="6">
   <properties>
-   <property name="collides" type="bool" value="true"/>
+   <property name="button" type="int" value="1"/>
   </properties>
-  <objectgroup draworder="index" id="2">
-   <object id="1" x="0" y="0" width="32" height="32"/>
-  </objectgroup>
  </tile>
  <tile id="7">
   <properties>
@@ -105,14 +102,6 @@
    <object id="1" x="0" y="0" width="32" height="32"/>
   </objectgroup>
  </tile>
- <tile id="13">
-  <properties>
-   <property name="collides" type="bool" value="true"/>
-  </properties>
-  <objectgroup draworder="index" id="2">
-   <object id="1" x="0" y="0" width="32" height="32"/>
-  </objectgroup>
- </tile>
  <tile id="14">
   <properties>
    <property name="collides" type="bool" value="true"/>
@@ -133,40 +122,32 @@
   <properties>
    <property name="collides" type="bool" value="true"/>
   </properties>
-  <objectgroup draworder="index" id="3">
-   <object id="2" x="0" y="0" width="32" height="32"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0" y="0" width="32" height="32"/>
   </objectgroup>
  </tile>
  <tile id="17">
   <properties>
    <property name="collides" type="bool" value="true"/>
   </properties>
-  <objectgroup draworder="index" id="3">
-   <object id="2" x="0" y="0" width="32" height="32"/>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0" y="0" width="32" height="32"/>
   </objectgroup>
  </tile>
  <tile id="18">
   <properties>
    <property name="collides" type="bool" value="true"/>
   </properties>
-  <objectgroup draworder="index" id="2">
-   <object id="1" x="0" y="0" width="32" height="32"/>
+  <objectgroup draworder="index" id="3">
+   <object id="2" x="0" y="0" width="32" height="32"/>
   </objectgroup>
  </tile>
  <tile id="19">
   <properties>
    <property name="collides" type="bool" value="true"/>
   </properties>
-  <objectgroup draworder="index" id="2">
-   <object id="1" x="0" y="0" width="32" height="32"/>
-  </objectgroup>
- </tile>
- <tile id="20">
-  <properties>
-   <property name="collides" type="bool" value="true"/>
-  </properties>
-  <objectgroup draworder="index" id="2">
-   <object id="1" x="0" y="0" width="32" height="32"/>
+  <objectgroup draworder="index" id="3">
+   <object id="2" x="0" y="0" width="32" height="32"/>
   </objectgroup>
  </tile>
  <tile id="21">
@@ -186,6 +167,30 @@
   </objectgroup>
  </tile>
  <tile id="23">
+  <properties>
+   <property name="collides" type="bool" value="true"/>
+  </properties>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0" y="0" width="32" height="32"/>
+  </objectgroup>
+ </tile>
+ <tile id="24">
+  <properties>
+   <property name="collides" type="bool" value="true"/>
+  </properties>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0" y="0" width="32" height="32"/>
+  </objectgroup>
+ </tile>
+ <tile id="25">
+  <properties>
+   <property name="collides" type="bool" value="true"/>
+  </properties>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0" y="0" width="32" height="32"/>
+  </objectgroup>
+ </tile>
+ <tile id="26">
   <properties>
    <property name="collides" type="bool" value="true"/>
   </properties>
