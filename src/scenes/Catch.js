@@ -24,6 +24,7 @@ class Catch extends Phaser.Scene{
     cursors = this.input.keyboard.createCursorKeys();
     keyAction = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    keyDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
 
     // Set up scene
     this.cameras.main.setBackgroundColor('#253a5e');
@@ -32,22 +33,25 @@ class Catch extends Phaser.Scene{
     // Ground and platforms
     const map = this.make.tilemap({key: "tilemap", tileWidth: 8, tileHeight: 8});
     const tileset = map.addTilesetImage("tempTileset", 'tiles', 8, 8, 0, 0);
-    const ground = map.createLayer('ground', tileset, 0, 0);
-    ground.setCollisionByProperty({collides: true});
+    this.ground = map.createLayer('ground', tileset, 0, 0);
+    this.ground.setCollisionByProperty({collides: true});
+    
     // Player
-    this.player = new Player(this, 64, 64, 'player', 0, ground);
+    this.player = new Player(this, 64, 64, 'player', 0, this.ground);
 
     // Ball
     this.playerGroup = this.add.group({maxSize: 2, runChildUpdate: true});
     this.playerGroup.add(this.player);
-    this.physics.add.collider(this.playerGroup, ground);
+    this.physics.add.collider(this.playerGroup, this.ground);
 
     this.loadInteractables();
   }
 
   update(){
     if(this.cameraInPosition) this.updateCamera();
-
+    if(Phaser.Input.Keyboard.JustDown(keyDown)){ 
+      
+    };
     // Player wants to do something
     if(Phaser.Input.Keyboard.JustDown(keyAction)){
       // If there's no ball yet, throw one
@@ -56,6 +60,9 @@ class Catch extends Phaser.Scene{
         this.player.changeScale(1, 0.5);
       } else if (this.playerGroup.isFull()){ // Teleport to ball
         let ball = this.playerGroup.getChildren()[1];
+        let canTeleport = ball.checkRaycasts();
+        if(!canTeleport) return;
+        ball.destroyRaycasts();
         let offset = 8; // Offset is to prevent player from clipping into the collision, letting them go through obstacles
         if(ball.currentAction == "right") this.player.teleport(ball.x-offset, ball.y)
         else if(ball.currentAction == "left") this.player.teleport(ball.x+offset, ball.y)
@@ -66,7 +73,10 @@ class Catch extends Phaser.Scene{
     }
     // Don't teleport to ball, instead revert back to normal
     if(Phaser.Input.Keyboard.JustDown(keyLeft) && this.playerGroup.isFull()){
+      let canRevert = this.player.checkRaycasts();
+      if(!canRevert) return;
       let ball = this.playerGroup.getChildren()[1];
+      ball.destroyRaycasts();
       let offset = 8;
       this.player.teleport(this.player.x, this.player.y-offset);
       this.player.changeScale(0.5, 1);
@@ -75,7 +85,7 @@ class Catch extends Phaser.Scene{
   }
 
   throwBall(){
-    let ball = new Ball(this, this.player.x, this.player.y, 'player', 0, this.player);
+    let ball = new Ball(this, this.player.x, this.player.y, 'player', 0, this.player, this.ground);
     ball.throw();
     this.playerGroup.add(ball);
   }
@@ -98,9 +108,11 @@ class Catch extends Phaser.Scene{
   }
 
   loadInteractables(){
-    this.buttonGroup = this.add.group({runChildUpdate: true});
     this.doorGroup = this.add.group({runChildUpdate: true});
-    // this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=> {button.playerPressed()});
+    this.buttonGroup = this.add.group({runChildUpdate: true});
+    this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=> {
+      button.isColliding();
+    });
     this.physics.add.collider(this.playerGroup, this.doorGroup);
 
     let interactables = this.levelJSON.layers[1].objects;
@@ -113,13 +125,14 @@ class Catch extends Phaser.Scene{
       }
       if(properties.name == "door"){
         // Get the targets of the door first, then create the door
+        let staysOpen = obj.properties[1].value;
         let targets = [];
         let buttons = this.buttonGroup.getChildren();
         for(const button of buttons){
           if(button.id == properties.value) targets.push(button);
         }
         let door = new Door(this, obj.x+offset.x, obj.y+offset.y, 'door', 0, properties.value, targets)
-        if(obj.properties.length > 1 && obj.properties[1].name == "staysOpen"){ door.stayOpen = true; }
+        if(staysOpen) door.stayOpen = true;
         this.doorGroup.add(door);
       }
     }

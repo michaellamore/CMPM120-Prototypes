@@ -9,9 +9,8 @@ class Door extends Obstacle{
 
   update(){
     for(const target of this.targets){
-      if(!target.isPressed){
-        return this.close();
-      }
+      console.log(target);
+      if(!target.isPressed) return this.close();
     }
     return this.open();
   }

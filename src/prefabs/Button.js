@@ -4,19 +4,15 @@ class Button extends Obstacle{
     this.setOrigin(0, 0);
     this.targets = targets;
     this.id = id;
-    this.isPressed = false;
   }
 
   update(){
-    // simple AABB checking
-    for(const target of this.targets){
-      if (this.x < target.x + target.width && 
-        this.x + this.width > target.x && 
-        this.y < target.y + target.height &&
-        this.height + this.y > target. y) {  
-        return this.isPressed = true
-      } 
-      else this.isPressed = false;
-    }
+    this.body.debugBodyColor = 0xa53030;
+    this.isPressed = false;
+  }
+
+  isColliding(){
+    this.isPressed = true;
+    this.body.debugBodyColor = 0x468232;
   }
 }

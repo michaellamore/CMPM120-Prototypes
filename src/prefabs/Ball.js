@@ -1,5 +1,5 @@
 class Ball extends Phaser.Physics.Arcade.Sprite{
-  constructor(scene, x, y, texture, frame, player){
+  constructor(scene, x, y, texture, frame, player, ground){
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
     scene.physics.add.existing(this);
@@ -17,6 +17,13 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     this.setTint(0x808080);
     this.scale = 0.5;
     this.player = player;
+    this.ground = ground;
+    this.ballRaycasts = this.scene.add.group({runChildUpdate: true});
+    this.addRaycasts();
+
+    this.scene.physics.add.overlap(this.ballRaycasts, this.ground, (raycast, tile)=>{
+      if(this.ground.culledTiles.includes(tile)) raycast.isColliding();
+    });
 
     // When initializing this object, check the last known input to get direction of throw
     if(cursors.left.isDown) {
@@ -47,5 +54,32 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     if(this.body.onFloor() || this.body.onWall()){
       this.body.setAccelerationX(0);
     }
+  }
+
+  addRaycasts(){
+    // Raycast is an Arcade Physics body with no texture. Extra params are target to follow, size, and offset (for placement) 
+    let ray1 = new Raycast(this.scene, this.x, this.y, null, 0, this, [6, 4], [5, 14]);
+    let ray2 = new Raycast(this.scene, this.x, this.y, null, 0, this, [6, 4], [21, 14]);
+    let ray3 = new Raycast(this.scene, this.x, this.y, null, 0, this, [4, 6], [14, 6]);
+    let ray4 = new Raycast(this.scene, this.x, this.y, null, 0, this, [4, 6], [14, 22]);
+    this.ballRaycasts.addMultiple([ray1, ray2, ray3, ray4]);
+  }
+
+  checkRaycasts(){
+    if(!this.ballRaycasts.getChildren()[0]) return
+    // Left, right, up, down
+    let array = [];
+    Phaser.Actions.Call(this.ballRaycasts.getChildren(), (raycast)=>{ 
+      array.push(raycast.colliding);
+    });
+    if(array[0] && array[1]) return false
+    if(array[2] && array[3]) return false
+    return true
+  }
+
+  destroyRaycasts(){
+    Phaser.Actions.Call(this.ballRaycasts.getChildren(), (raycast)=>{ 
+      raycast.destroy();
+    });
   }
 }
