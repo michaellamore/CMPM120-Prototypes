@@ -6,7 +6,6 @@ class Catch extends Phaser.Scene{
   preload(){
     this.load.path = "./assets/";
     this.load.image('player', 'testPlayer.png');
-    this.load.image('ground', 'testGround.png');
     this.load.image('button', 'button.png');
     this.load.image('door', 'door.png');
 
@@ -18,7 +17,7 @@ class Catch extends Phaser.Scene{
 
   create(){
     // Variables and such
-    this.physics.world.gravity.y = 2000;
+    this.physics.world.gravity.y = 1700;
     this.levelJSON = this.cache.json.get('levelJSON');
 
     // Input
@@ -27,16 +26,16 @@ class Catch extends Phaser.Scene{
     keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
 
     // Set up scene
-    this.cameras.main.setBackgroundColor('#3256a8');
+    this.cameras.main.setBackgroundColor('#253a5e');
     this.cameraInPosition = true;
     
     // Ground and platforms
-    const map = this.make.tilemap({key: "tilemap", tileWidth: 32, tileHeight: 32});
-    const tileset = map.addTilesetImage("tempTileset", 'tiles', 32, 32, 0, 0);
+    const map = this.make.tilemap({key: "tilemap", tileWidth: 8, tileHeight: 8});
+    const tileset = map.addTilesetImage("tempTileset", 'tiles', 8, 8, 0, 0);
     const ground = map.createLayer('ground', tileset, 0, 0);
     ground.setCollisionByProperty({collides: true});
     // Player
-    this.player = new Player(this, 64, 64, 'player', 0);
+    this.player = new Player(this, 64, 64, 'player', 0, ground);
 
     // Ball
     this.playerGroup = this.add.group({maxSize: 2, runChildUpdate: true});
@@ -57,10 +56,10 @@ class Catch extends Phaser.Scene{
         this.player.changeScale(1, 0.5);
       } else if (this.playerGroup.isFull()){ // Teleport to ball
         let ball = this.playerGroup.getChildren()[1];
-        let offset = 16; // Offset is to prevent player from clipping into the collision, letting them go through obstacles
-        if(ball.currentAction == "right") this.player.teleport(ball.x-offset, ball.y-offset)
-        else if(ball.currentAction == "left") this.player.teleport(ball.x+offset, ball.y-offset)
-        else this.player.teleport(ball.x, ball.y-offset)
+        let offset = 8; // Offset is to prevent player from clipping into the collision, letting them go through obstacles
+        if(ball.currentAction == "right") this.player.teleport(ball.x-offset, ball.y)
+        else if(ball.currentAction == "left") this.player.teleport(ball.x+offset, ball.y)
+        else this.player.teleport(ball.x, ball.y)
         this.player.changeScale(0.5, 1);
         ball.destroy();
       }
@@ -68,7 +67,7 @@ class Catch extends Phaser.Scene{
     // Don't teleport to ball, instead revert back to normal
     if(Phaser.Input.Keyboard.JustDown(keyLeft) && this.playerGroup.isFull()){
       let ball = this.playerGroup.getChildren()[1];
-      let offset = 16;
+      let offset = 8;
       this.player.teleport(this.player.x, this.player.y-offset);
       this.player.changeScale(0.5, 1);
       ball.destroy();
@@ -107,9 +106,9 @@ class Catch extends Phaser.Scene{
     let interactables = this.levelJSON.layers[1].objects;
     for(const obj of interactables){
       let properties = obj.properties[0];
-      let offset = new Phaser.Math.Vector2(512, 480); // idk why I even need the offset, Tiled is wild
+      let offset = new Phaser.Math.Vector2(0, -8); // idk why I even need the offset, Tiled is wild
       if(properties.name == "button"){
-        let button = new Button(this, obj.x+offset.x, obj.y+offset.y, 'button', 0, this.playerGroup.getChildren(), properties.value)
+        let button = new Button(this, obj.x+offset.x, obj.y+offset.y, 'button', 0, this.playerGroup.getChildren(), properties.value);
         this.buttonGroup.add(button);
       }
       if(properties.name == "door"){
@@ -120,6 +119,7 @@ class Catch extends Phaser.Scene{
           if(button.id == properties.value) targets.push(button);
         }
         let door = new Door(this, obj.x+offset.x, obj.y+offset.y, 'door', 0, properties.value, targets)
+        if(obj.properties.length > 1 && obj.properties[1].name == "staysOpen"){ door.stayOpen = true; }
         this.doorGroup.add(door);
       }
     }

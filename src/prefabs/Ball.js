@@ -4,16 +4,19 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0.5);
-    this.player = player;
-    this.scale = 0.5;
+    this.body.setSize(16, 16, false);
+    this.body.setOffset(0, 3);
 
-    this.velX = 400;
-    this.velY = 700;
-    this.acceleration = 1500;
+    this.velX = 350;
+    this.velY = 550;
+    this.acceleration = 550;
     this.drag = 2000;
-    this.jump_velocity = -750;
+    this.jump_velocity = -520;
+
     this.setMaxVelocity(this.velX, this.velY)
     this.setTint(0x808080);
+    this.scale = 0.5;
+    this.player = player;
 
     // When initializing this object, check the last known input to get direction of throw
     if(cursors.left.isDown) {

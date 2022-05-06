@@ -3,11 +3,11 @@
 let config = {
   type: Phaser.AUTO,
   // This width/height makes it easier to scale up to 720p or 1080p
-  width: 640,
-  height: 360,
+  width: 320,
+  height: 180,
   parent: "phaser-canvas",
   pixelArt: true,
-  zoom: 1,
+  zoom: 4,
   fps:{
     // target: 30,
     // forceSetTimeOut: true
@@ -16,7 +16,7 @@ let config = {
     default: 'arcade',
     arcade: {
       gravity: {y: 0},
-      debug: false
+      debug: true
     }
   },
   scene: [Catch]
