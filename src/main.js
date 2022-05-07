@@ -16,6 +16,7 @@ let config = {
     default: 'arcade',
     arcade: {
       gravity: {y: 0},
+      tileBias: 8,
       debug: false
     }
   },
