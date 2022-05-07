@@ -19,11 +19,15 @@ class Catch extends Phaser.Scene{
     // Variables and such
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
+    this.currentSpawn = new Phaser.Math.Vector2(32, 128);
 
     // Input
     cursors = this.input.keyboard.createCursorKeys();
+    keyReset = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
     keyAction = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
-    keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    keyRight = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    keyUp = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
     keyDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
 
     // Camera + flags
@@ -35,17 +39,23 @@ class Catch extends Phaser.Scene{
     const tileset = map.addTilesetImage("tempTileset", 'tiles', 8, 8, 0, 0);
     this.ground = map.createLayer('ground', tileset, 0, 0);
     this.ground.setCollisionByProperty({collides: true});
-    this.killArea = map.createLayer('killArea', tileset, 0, 8*16);
+    this.killArea = map.createLayer('killArea', tileset, 0, 0);
     this.killArea.setCollisionByProperty({kills: true});
     
     // Player
-    this.currentSpawn = new Phaser.Math.Vector2(64, 64);
     this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0, this.ground);
     this.playerGroup = this.add.group({maxSize: 2, runChildUpdate: true});
     this.playerGroup.add(this.player);
     this.physics.add.collider(this.playerGroup, this.ground);
     this.physics.add.overlap(this.playerGroup, this.killArea, (player, tile)=>{
-      if(this.killArea.culledTiles.includes(tile)) this.resetPlayer();
+      if(this.killArea.culledTiles.includes(tile)){
+        if(player.isBall) {
+          this.retrieveBall(); 
+        } else if (player.isBall == null){
+          if(this.playerGroup.isFull()) this.retrieveBall();
+          this.resetPlayer();
+        }
+      }
     });
 
     this.loadInteractables();
@@ -53,22 +63,22 @@ class Catch extends Phaser.Scene{
 
   update(){
     if(this.cameraInPosition) this.updateCamera();
+
     this.updateSpawnpoint();
-    if(Phaser.Input.Keyboard.JustDown(keyDown)){ 
-      console.log(this.currentSpawn);
-    };
     // Player wants to do something
-    if(Phaser.Input.Keyboard.JustDown(keyAction)){
-      // If there's no ball yet, throw one
-      if(!this.playerGroup.isFull()){
-        this.throwBall();
+    if (Phaser.Input.Keyboard.JustDown(keyReset)) this.resetPlayer();
+
+    if (Phaser.Input.Keyboard.JustDown(cursors.left) || Phaser.Input.Keyboard.JustDown(cursors.right) || 
+    Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(cursors.down)){   
+      if(!this.playerGroup.isFull() && this.player.canThrow){
         this.player.changeScale(1, 0.5);
-      } else if (this.playerGroup.isFull()){
+        this.throwBall();
+      } else if (this.playerGroup.isFull() && this.player.canTeleport){
         this.teleportToBall();
       }
     }
-    // Don't teleport to ball, instead revert back to normal
-    if(Phaser.Input.Keyboard.JustDown(keyLeft) && this.playerGroup.isFull()){
+    // Revert back to normal
+    if(Phaser.Input.Keyboard.JustDown(keyAction) && this.playerGroup.isFull()){
       this.retrieveBall();
     }
   }
@@ -105,6 +115,7 @@ class Catch extends Phaser.Scene{
       return;
     }
     let ball = this.playerGroup.getChildren()[1];
+    if(ball == null) return;
     ball.destroyRaycasts();
 
     let inc = 4
@@ -118,8 +129,6 @@ class Catch extends Phaser.Scene{
     this.player.changeScale(0.5, 1);
     ball.destroy();
   }
-
-  
 
   getInput(){
     // Should be 8 directions, plus no input = 9 possibilities
@@ -141,13 +150,13 @@ class Catch extends Phaser.Scene{
   }
 
   updateCamera(){
-    // currently only moves along x. I think it'll be easy to let it scroll in Y too
-    let currentLevel = Math.floor(this.player.x / width);
-    let target = width*currentLevel;
+    let gridLocation = this.getLocationOnGrid(this.player);
+    let target = new Phaser.Math.Vector2(gridLocation.x * width, gridLocation.y * height);
     this.cameraInPosition = false;
     let tween = this.tweens.add({
       targets: this.cameras.main,
-      scrollX: target,
+      scrollX: target.x,
+      scrollY: target.y,
       ease: "Sine.easeOut",
       duration: 300,
       repeat: 0,
@@ -170,7 +179,6 @@ class Catch extends Phaser.Scene{
   }
 
   resetPlayer(){
-    if(this.playerGroup.isFull())this.retrieveBall();
     this.player.x = this.currentSpawn.x;
     this.player.y = this.currentSpawn.y;
   }

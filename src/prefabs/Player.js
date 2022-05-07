@@ -5,6 +5,8 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     scene.physics.add.existing(this);
     this.scene = scene;
     this.isSmall = false;
+    this.canThrow = true;
+    this.canTeleport = true;
     this.setOrigin(0.5);
     this.setDepth(1);
     this.body.setSize(16, 16, false);
@@ -14,9 +16,12 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     this.raycastGroup = this.scene.add.group({runChildUpdate: true});
     this.addRaycasts();
 
+    this.wallJumps = 1;
+    this.throwDelay = 50;
+    this.teleportDelay = 160;
     this.growthSpeed = 300; // in milliseconds
     // Variables to change the feel of player movement
-    this.velXBig = 160;
+    this.velXBig = 150;
     this.velYBig = 385;
     this.velJumpBig = -385;
     this.accelBig = 800;
@@ -32,12 +37,17 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   }
   
   update(){
+    
+    if(this.body.onFloor()){
+      this.wallJumps = 1;
+    }
+
     if(this.isSmall){
       // Left and right
-      if(cursors.left.isDown) {
+      if(keyLeft.isDown) {
         this.flipX = true;
         this.body.setAccelerationX(-this.accelSmall);
-      } else if(cursors.right.isDown) {
+      } else if(keyRight.isDown) {
         this.flipX = false;
         this.body.setAccelerationX(this.accelSmall);
       } else { // Standing still
@@ -45,15 +55,15 @@ class Player extends Phaser.Physics.Arcade.Sprite{
         this.body.setDragX(this.dragSmall);
       }
       // Jumping
-      if(this.body.onFloor() && Phaser.Input.Keyboard.JustDown(cursors.up) && !keyAction.isDown) {
+      if(this.body.onFloor() && Phaser.Input.Keyboard.JustDown(keyUp) && !keyAction.isDown) {
         this.body.setVelocityY(this.velJumpSmall);
       }
     } else {
       // Left and right
-      if(cursors.left.isDown) {
+      if(keyLeft.isDown) {
         this.flipX = true;
         this.body.setAccelerationX(-this.accelBig);
-      } else if(cursors.right.isDown) {
+      } else if(keyRight.isDown) {
         this.flipX = false;
         this.body.setAccelerationX(this.accelBig);
       } else { // Standing still
@@ -61,25 +71,41 @@ class Player extends Phaser.Physics.Arcade.Sprite{
         this.body.setDragX(this.dragBig);
       }
       // Jumping
-      if(this.body.onFloor() && Phaser.Input.Keyboard.JustDown(cursors.up) && !keyAction.isDown) {
+      if(this.body.onFloor() && Phaser.Input.Keyboard.JustDown(keyUp)) {
         this.body.setVelocityY(this.velJumpBig);
+      }
+      // Wall jumps
+      if(this.body.onWall() && Phaser.Input.Keyboard.JustDown(keyUp) && this.wallJumps>0) {
+        this.body.setVelocityY(this.velJumpSmall);
+        this.wallJumps--;
       }
     }
   }
 
   teleport(x, y){
+    this.body.setVelocityY(this.velJumpSmall/3);
     this.x = x;
     this.y = y;
   }
 
   changeScale(initial, final){
     if(final == 1){
+      this.canThrow = false;
       this.isSmall = false;
       this.setMaxVelocity(this.velXBig, this.velYBig);
+      this.scene.time.addEvent({
+        delay: this.throwDelay, 
+        callback: ()=>{ this.canThrow = true },
+      })
     }
     if(final < 1){
+      this.canTeleport = false;
       this.isSmall = true;
       this.setMaxVelocity(this.velXSmall, this.velYSmall);
+      this.scene.time.addEvent({
+        delay: this.teleportDelay, 
+        callback: ()=>{ this.canTeleport = true },
+      })
     }
 
     this.scene.tweens.add({
@@ -101,11 +127,14 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     this.raycastGroup.addMultiple([ray1, ray2, ray3, ray4]);
     this.scene.physics.add.overlap(this.raycastGroup, this.ground, (raycast, tile)=>{
       // If the tile the raycast is hitting is actual ground, tell it that it's colliding
-      if(this.ground.culledTiles.includes(tile)) raycast.isColliding();
+      if(this.ground.culledTiles.includes(tile)){
+        raycast.isColliding();
+      }
     });
   }
 
   checkRaycasts(){
+    if(!this.raycastGroup.getChildren()[0]) return
     // Left, right, up, down
     let array = [];
     Phaser.Actions.Call(this.raycastGroup.getChildren(), (raycast)=>{ 

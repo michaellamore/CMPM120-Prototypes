@@ -7,7 +7,7 @@ let config = {
   height: 180,
   parent: "phaser-canvas",
   pixelArt: true,
-  zoom: 4,
+  zoom: 2,
   fps:{
     target: 60,
     forceSetTimeOut: true
@@ -25,7 +25,7 @@ let config = {
 
 let game = new Phaser.Game(config);
 
-let keyLeft, keyRight, keyUp, keyDown, keyAction, cursors;
+let keyLeft, keyRight, keyUp, keyDown, keyAction, keyReset, cursors;
 const width = config.width;
 const height = config.height;
 const padding = 30;

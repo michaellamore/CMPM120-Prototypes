@@ -6,7 +6,7 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     this.setOrigin(0.5);
     this.body.setSize(16, 16, false);
     this.body.setOffset(0, 3);
-
+    this.isBall = true;
     this.setBounce(0.5, 0.5);
     this.velX = 160;
     this.velXBig = 270;
