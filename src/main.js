@@ -9,14 +9,14 @@ let config = {
   pixelArt: true,
   zoom: 4,
   fps:{
-    // target: 30,
-    // forceSetTimeOut: true
+    target: 60,
+    forceSetTimeOut: true
   },
   physics: {
     default: 'arcade',
     arcade: {
       gravity: {y: 0},
-      debug: true
+      debug: false
     }
   },
   scene: [Catch]

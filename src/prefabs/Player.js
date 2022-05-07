@@ -4,45 +4,67 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.scene = scene;
+    this.isSmall = false;
     this.setOrigin(0.5);
     this.setDepth(1);
     this.body.setSize(16, 16, false);
     this.body.setOffset(0, 3);
     this.body.debugBodyColor = 0x468232;
-    // Variables to change the feel of player movement
-    this.velX = 180;
-    this.velY = 550;
-    this.acceleration = 700;
-    this.drag = 900;
-    this.jump_velocity = -420;
-    this.scaleSpeed = 300; // in milliseconds
-    this.setMaxVelocity(this.velX, this.velY);
-
-    this.isSmall = false;
-
-    this.raycastGroup = this.scene.add.group({runChildUpdate: true});
     this.ground = ground;
+    this.raycastGroup = this.scene.add.group({runChildUpdate: true});
     this.addRaycasts();
+
+    this.growthSpeed = 300; // in milliseconds
+    // Variables to change the feel of player movement
+    this.velXBig = 160;
+    this.velYBig = 385;
+    this.velJumpBig = -385;
+    this.accelBig = 800;
+    this.dragBig = 900;
+
+    this.velXSmall = 80;
+    this.velYSmall = 300;
+    this.velJumpSmall = -300;
+    this.accelSmall = 800;
+    this.dragSmall = 900;
+
+    this.setMaxVelocity(this.velXBig, this.velYBig);
   }
   
   update(){
-    // Left and right
-    if(cursors.left.isDown) {
-      this.body.setAccelerationX(-this.acceleration);
-    } else if(cursors.right.isDown) {
-      this.body.setAccelerationX(this.acceleration);
-    } else { // Standing still
-      this.body.setAccelerationX(0);
-      this.body.setDragX(this.drag);
+    if(this.isSmall){
+      // Left and right
+      if(cursors.left.isDown) {
+        this.flipX = true;
+        this.body.setAccelerationX(-this.accelSmall);
+      } else if(cursors.right.isDown) {
+        this.flipX = false;
+        this.body.setAccelerationX(this.accelSmall);
+      } else { // Standing still
+        this.body.setAccelerationX(0);
+        this.body.setDragX(this.dragSmall);
+      }
+      // Jumping
+      if(this.body.onFloor() && Phaser.Input.Keyboard.JustDown(cursors.up) && !keyAction.isDown) {
+        this.body.setVelocityY(this.velJumpSmall);
+      }
+    } else {
+      // Left and right
+      if(cursors.left.isDown) {
+        this.flipX = true;
+        this.body.setAccelerationX(-this.accelBig);
+      } else if(cursors.right.isDown) {
+        this.flipX = false;
+        this.body.setAccelerationX(this.accelBig);
+      } else { // Standing still
+        this.body.setAccelerationX(0);
+        this.body.setDragX(this.dragBig);
+      }
+      // Jumping
+      if(this.body.onFloor() && Phaser.Input.Keyboard.JustDown(cursors.up) && !keyAction.isDown) {
+        this.body.setVelocityY(this.velJumpBig);
+      }
     }
-
-    // Jumping
-    if(this.body.onFloor() && Phaser.Input.Keyboard.JustDown(cursors.up) && !keyAction.isDown) {
-      this.body.setVelocityY(this.jump_velocity);
-    }
-
-    this.isSmall = false;
-    if(this.scale < 1) this.isSmall = true;
   }
 
   teleport(x, y){
@@ -51,12 +73,20 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   }
 
   changeScale(initial, final){
-    if(this.body.onFloor() && this.body.onCeiling()) return; // If the player perfectly fits in the current space, don't change scale
+    if(final == 1){
+      this.isSmall = false;
+      this.setMaxVelocity(this.velXBig, this.velYBig);
+    }
+    if(final < 1){
+      this.isSmall = true;
+      this.setMaxVelocity(this.velXSmall, this.velYSmall);
+    }
+
     this.scene.tweens.add({
       targets: this,
       scale: {from: initial, to: final},
       ease: "Sine.easeInOut",
-      duration: this.scaleSpeed,
+      duration: this.growthSpeed,
       repeat: 0,
       yoyo: false
     })
@@ -70,6 +100,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     let ray4 = new Raycast(this.scene, this.x, this.y, null, 0, this, [4, 6], [14, 22]);
     this.raycastGroup.addMultiple([ray1, ray2, ray3, ray4]);
     this.scene.physics.add.overlap(this.raycastGroup, this.ground, (raycast, tile)=>{
+      // If the tile the raycast is hitting is actual ground, tell it that it's colliding
       if(this.ground.culledTiles.includes(tile)) raycast.isColliding();
     });
   }
@@ -80,8 +111,6 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     Phaser.Actions.Call(this.raycastGroup.getChildren(), (raycast)=>{ 
       array.push(raycast.colliding);
     });
-    if(array[0] && array[1]) return false
-    if(array[2] && array[3]) return false
-    return true
+    return array;
   }
 }

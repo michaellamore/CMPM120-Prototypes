@@ -7,13 +7,19 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     this.body.setSize(16, 16, false);
     this.body.setOffset(0, 3);
 
-    this.velX = 350;
-    this.velY = 550;
+    this.setBounce(0.5, 0.5);
+    this.velX = 160;
+    this.velXBig = 270;
+    this.velY = 400;
+    this.velYBig = 600;
+    this.jumpVelocity = -400;
+    this.jumpVelBig = -500;
     this.acceleration = 550;
-    this.drag = 2000;
-    this.jump_velocity = -520;
-
+    this.drag = 500;
+    this.dragBig = 1000;
     this.setMaxVelocity(this.velX, this.velY)
+    this.body.setDragX(this.drag);
+    
     this.setTint(0x808080);
     this.scale = 0.5;
     this.player = player;
@@ -26,32 +32,68 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     });
 
     // When initializing this object, check the last known input to get direction of throw
-    if(cursors.left.isDown) {
-      this.currentAction = "left";
-    } else if(cursors.right.isDown) {
-      this.currentAction = "right";
-    } else { // Standing still
-      this.currentAction = "none";
-    }
+    this.currentAction = this.scene.getInput();
   }
   
   throw(){
-    if (this.currentAction == "left") {
+    if(this.currentAction == "upLeft") {
       this.body.setAccelerationX(-this.acceleration);
-      this.body.setVelocityY(-this.velX);
-    } else if (this.currentAction == "right"){
-      this.body.setAccelerationX(this.acceleration);
-      this.body.setVelocityY(this.velX);
-    } else{
+      this.body.setVelocityX(-this.velX);
+      this.body.setVelocityY(this.jumpVelocity);
+    } 
+    else if(this.currentAction == "downLeft") {
+      this.body.setAccelerationX(-this.acceleration);
+      this.body.setVelocityX(-this.velXBig);
+      this.body.setVelocityY(-this.jumpVelBig);
+      this.setMaxVelocity(this.velXBig, this.velYBig);
+      this.setBounce(0.7, 0.7);
+    } 
+    else if(this.currentAction == "upRight") {
+      this.body.setAccelerationX(this.acceleration*3);
+      this.body.setVelocityX(this.velX);
+      this.body.setVelocityY(this.jumpVelocity);
+    } 
+    else if(this.currentAction == "downRight") {
+      this.body.setAccelerationX(this.acceleration*3);
+      this.body.setVelocityX(this.velX*3);
+      this.body.setVelocityY(-this.jumpVelBig);
+      this.setMaxVelocity(this.velXBig, this.velYBig);
+      this.setBounce(0.7, 0.7);
+    } 
+    else if(this.currentAction == "up") {
       this.body.setAccelerationX(0);
+      this.body.setVelocityY(this.jumpVelocity);
+    } 
+    else if(this.currentAction == "down") {
+      this.body.setAccelerationX(0);
+      this.body.setVelocityY(-this.jumpVelocity);
+    } 
+    else if(this.currentAction == "left") {
+      this.body.setAccelerationX(-this.acceleration*3);
+      this.body.setVelocityX(-this.velXBig);
+      this.body.setVelocityY(this.jumpVelocity/2);
+      this.setMaxVelocity(this.velXBig, this.velY)
+      this.setBounce(0.1, 0.1);
+      this.body.setDragX(this.dragBig);
+      
+    } 
+    else if(this.currentAction == "right") {
+      this.body.setAccelerationX(this.acceleration*3);
+      this.body.setVelocityX(this.velXBig);
+      this.body.setVelocityY(this.jumpVelocity/2);
+      this.setMaxVelocity(this.velXBig, this.velY)
+      this.setBounce(0.1, 0.1);
+      this.body.setDragX(this.dragBig);
+    } 
+    else {
+      // if current action is none or not accounted for, it's ok. don't change its vel or accel
     }
-    this.body.setDragX(this.drag);
-    this.body.setVelocityY(this.jump_velocity);
   }
 
   update(){
     // If it hits ANYTHING other than player, stop its movement
     if(this.body.onFloor() || this.body.onWall()){
+      this.setBounce(0, 0);
       this.body.setAccelerationX(0);
     }
   }
@@ -72,9 +114,7 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     Phaser.Actions.Call(this.ballRaycasts.getChildren(), (raycast)=>{ 
       array.push(raycast.colliding);
     });
-    if(array[0] && array[1]) return false
-    if(array[2] && array[3]) return false
-    return true
+    return array;
   }
 
   destroyRaycasts(){

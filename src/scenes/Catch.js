@@ -17,7 +17,7 @@ class Catch extends Phaser.Scene{
 
   create(){
     // Variables and such
-    this.physics.world.gravity.y = 1700;
+    this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
 
     // Input
@@ -26,31 +26,36 @@ class Catch extends Phaser.Scene{
     keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     keyDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
 
-    // Set up scene
+    // Camera + flags
     this.cameras.main.setBackgroundColor('#253a5e');
     this.cameraInPosition = true;
     
-    // Ground and platforms
+    // Tileset stuff
     const map = this.make.tilemap({key: "tilemap", tileWidth: 8, tileHeight: 8});
     const tileset = map.addTilesetImage("tempTileset", 'tiles', 8, 8, 0, 0);
     this.ground = map.createLayer('ground', tileset, 0, 0);
     this.ground.setCollisionByProperty({collides: true});
+    this.killArea = map.createLayer('killArea', tileset, 0, 8*16);
+    this.killArea.setCollisionByProperty({kills: true});
     
     // Player
-    this.player = new Player(this, 64, 64, 'player', 0, this.ground);
-
-    // Ball
+    this.currentSpawn = new Phaser.Math.Vector2(64, 64);
+    this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0, this.ground);
     this.playerGroup = this.add.group({maxSize: 2, runChildUpdate: true});
     this.playerGroup.add(this.player);
     this.physics.add.collider(this.playerGroup, this.ground);
+    this.physics.add.overlap(this.playerGroup, this.killArea, (player, tile)=>{
+      if(this.killArea.culledTiles.includes(tile)) this.resetPlayer();
+    });
 
     this.loadInteractables();
   }
 
   update(){
     if(this.cameraInPosition) this.updateCamera();
+    this.updateSpawnpoint();
     if(Phaser.Input.Keyboard.JustDown(keyDown)){ 
-      
+      console.log(this.currentSpawn);
     };
     // Player wants to do something
     if(Phaser.Input.Keyboard.JustDown(keyAction)){
@@ -58,29 +63,13 @@ class Catch extends Phaser.Scene{
       if(!this.playerGroup.isFull()){
         this.throwBall();
         this.player.changeScale(1, 0.5);
-      } else if (this.playerGroup.isFull()){ // Teleport to ball
-        let ball = this.playerGroup.getChildren()[1];
-        let canTeleport = ball.checkRaycasts();
-        if(!canTeleport) return;
-        ball.destroyRaycasts();
-        let offset = 8; // Offset is to prevent player from clipping into the collision, letting them go through obstacles
-        if(ball.currentAction == "right") this.player.teleport(ball.x-offset, ball.y)
-        else if(ball.currentAction == "left") this.player.teleport(ball.x+offset, ball.y)
-        else this.player.teleport(ball.x, ball.y)
-        this.player.changeScale(0.5, 1);
-        ball.destroy();
+      } else if (this.playerGroup.isFull()){
+        this.teleportToBall();
       }
     }
     // Don't teleport to ball, instead revert back to normal
     if(Phaser.Input.Keyboard.JustDown(keyLeft) && this.playerGroup.isFull()){
-      let canRevert = this.player.checkRaycasts();
-      if(!canRevert) return;
-      let ball = this.playerGroup.getChildren()[1];
-      ball.destroyRaycasts();
-      let offset = 8;
-      this.player.teleport(this.player.x, this.player.y-offset);
-      this.player.changeScale(0.5, 1);
-      ball.destroy();
+      this.retrieveBall();
     }
   }
 
@@ -88,6 +77,67 @@ class Catch extends Phaser.Scene{
     let ball = new Ball(this, this.player.x, this.player.y, 'player', 0, this.player, this.ground);
     ball.throw();
     this.playerGroup.add(ball);
+  }
+
+  teleportToBall(){
+    let ball = this.playerGroup.getChildren()[1];
+    let raycastColl = ball.checkRaycasts();
+    if((raycastColl[0] && raycastColl[1]) || (raycastColl[2] && raycastColl[3])){
+      return;
+    }
+    ball.destroyRaycasts();
+
+    let inc = 4
+    let offset = new Phaser.Math.Vector2(0, 0);
+    if(raycastColl[0]) offset.x += inc;
+    if(raycastColl[1]) offset.x -= inc;
+    if(raycastColl[2]) offset.y += inc;
+    if(raycastColl[3]) offset.y -= inc;
+
+    this.player.teleport(ball.x + offset.x, ball.y + offset.y);
+    this.player.changeScale(0.5, 1);
+    ball.destroy();
+  }
+
+  retrieveBall(){
+    let raycastColl = this.player.checkRaycasts();
+    if((raycastColl[0] && raycastColl[1]) || (raycastColl[2] && raycastColl[3])){
+      return;
+    }
+    let ball = this.playerGroup.getChildren()[1];
+    ball.destroyRaycasts();
+
+    let inc = 4
+    let offset = new Phaser.Math.Vector2(0, 0);
+    if(raycastColl[0]) offset.x += inc;
+    if(raycastColl[1]) offset.x -= inc;
+    if(raycastColl[2]) offset.y += inc;
+    if(raycastColl[3]) offset.y -= inc;
+
+    this.player.teleport(this.player.x + offset.x, this.player.y + offset.y);
+    this.player.changeScale(0.5, 1);
+    ball.destroy();
+  }
+
+  
+
+  getInput(){
+    // Should be 8 directions, plus no input = 9 possibilities
+    if(cursors.left.isDown && cursors.up.isDown) { return "upLeft" } 
+    else if(cursors.left.isDown && cursors.down.isDown) { return "downLeft" } 
+    else if(cursors.right.isDown && cursors.up.isDown) { return "upRight" } 
+    else if(cursors.right.isDown && cursors.down.isDown) { return "downRight" } 
+    else if(cursors.up.isDown) { return "up" } 
+    else if(cursors.down.isDown) { return "down" } 
+    else if(cursors.left.isDown) { return "left"} 
+    else if(cursors.right.isDown) { return "right";} 
+    else { return "none"; }
+  }
+
+  getLocationOnGrid(obj){
+    // Gets the obj's current location based on a grid
+    let vector2 = new Phaser.Math.Vector2(Math.floor(obj.x/width), Math.floor(obj.y/height));
+    return vector2;
   }
 
   updateCamera(){
@@ -107,12 +157,29 @@ class Catch extends Phaser.Scene{
     });
   }
 
+  updateSpawnpoint(){
+    let playerGridPos = this.getLocationOnGrid(this.player);
+    Phaser.Actions.Call(this.spawnGroup.getChildren(), (spawn)=>{ 
+      let spawnPos = spawn.getPos();
+      let spawnGridPos = this.getLocationOnGrid(spawnPos);
+      if(playerGridPos.x == spawnGridPos.x && playerGridPos.y == spawnGridPos.y){
+        this.currentSpawn.x = spawnPos.x;
+        this.currentSpawn.y = spawnPos.y;
+      }
+    });
+  }
+
+  resetPlayer(){
+    if(this.playerGroup.isFull())this.retrieveBall();
+    this.player.x = this.currentSpawn.x;
+    this.player.y = this.currentSpawn.y;
+  }
+
   loadInteractables(){
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
-    this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=> {
-      button.isColliding();
-    });
+    this.spawnGroup = this.add.group();
+    this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=> { button.isColliding(); });
     this.physics.add.collider(this.playerGroup, this.doorGroup);
 
     let interactables = this.levelJSON.layers[1].objects;
@@ -125,15 +192,23 @@ class Catch extends Phaser.Scene{
       }
       if(properties.name == "door"){
         // Get the targets of the door first, then create the door
-        let staysOpen = obj.properties[1].value;
+        
         let targets = [];
         let buttons = this.buttonGroup.getChildren();
         for(const button of buttons){
           if(button.id == properties.value) targets.push(button);
         }
-        let door = new Door(this, obj.x+offset.x, obj.y+offset.y, 'door', 0, properties.value, targets)
-        if(staysOpen) door.stayOpen = true;
+        let door = new Door(this, obj.x+offset.x, obj.y+offset.y, 'door', 0, properties.value, targets);
         this.doorGroup.add(door);
+        if(obj.properties[1] != null){
+          let staysOpen = obj.properties[1].value;
+          if(staysOpen) door.stayOpen = true;
+        }
+      }
+
+      if(properties.name == "spawnpoint"){
+        let spawn = new Spawn(this, obj.x + offset.x, obj.y+offset.y, null, 0);
+        this.spawnGroup.add(spawn);
       }
     }
   } 

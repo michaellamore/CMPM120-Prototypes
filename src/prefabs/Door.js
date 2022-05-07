@@ -9,18 +9,19 @@ class Door extends Obstacle{
 
   update(){
     for(const target of this.targets){
-      console.log(target);
       if(!target.isPressed) return this.close();
     }
     return this.open();
   }
 
   open(){
+    this.body.debugBodyColor = 0x468232;
     this.body.setEnable(false);
     this.alpha = 0;
   }
 
   close(){
+    this.body.debugBodyColor = 0xa53030;
     if(this.stayOpen) return;
     this.body.setEnable(true);
     this.alpha = 1;
