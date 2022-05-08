@@ -43,104 +43,22 @@ class Catch extends Phaser.Scene{
     this.killArea.setCollisionByProperty({kills: true});
     
     // Player
-    this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0, this.ground);
     this.playerGroup = this.add.group({maxSize: 2, runChildUpdate: true});
+    this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0, this.playerGroup, this.ground);
     this.playerGroup.add(this.player);
-    this.physics.add.collider(this.playerGroup, this.ground);
-    this.physics.add.overlap(this.playerGroup, this.killArea, (player, tile)=>{
-      if(this.killArea.culledTiles.includes(tile)){
-        if(player.isBall) {
-          this.retrieveBall(); 
-        } else if (player.isBall == null){
-          if(this.playerGroup.isFull()) this.retrieveBall();
-          this.resetPlayer();
-        }
-      }
-    });
 
-    this.loadInteractables();
+    // Collision stuff
+    this.physics.add.collider(this.playerGroup, this.ground);
+    this.physics.add.overlap(this.playerGroup, this.killArea, this.collideWithKillArea, null, this);
+
+    // Load custom tiles that use JS prefabs from Tiled
+    this.loadSpecialTiles();
   }
 
   update(){
+    // Camera and spawn points will automatically change based on player position
     if(this.cameraInPosition) this.updateCamera();
-
     this.updateSpawnpoint();
-    // Player wants to do something
-    if (Phaser.Input.Keyboard.JustDown(keyReset)) this.resetPlayer();
-
-    if (Phaser.Input.Keyboard.JustDown(cursors.left) || Phaser.Input.Keyboard.JustDown(cursors.right) || 
-    Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(cursors.down)){   
-      if(!this.playerGroup.isFull() && this.player.canThrow){
-        this.player.changeScale(1, 0.5);
-        this.throwBall();
-      } else if (this.playerGroup.isFull() && this.player.canTeleport){
-        this.teleportToBall();
-      }
-    }
-    // Revert back to normal
-    if(Phaser.Input.Keyboard.JustDown(keyAction) && this.playerGroup.isFull()){
-      this.retrieveBall();
-    }
-  }
-
-  throwBall(){
-    let ball = new Ball(this, this.player.x, this.player.y, 'player', 0, this.player, this.ground);
-    ball.throw();
-    this.playerGroup.add(ball);
-  }
-
-  teleportToBall(){
-    let ball = this.playerGroup.getChildren()[1];
-    let raycastColl = ball.checkRaycasts();
-    if((raycastColl[0] && raycastColl[1]) || (raycastColl[2] && raycastColl[3])){
-      return;
-    }
-    ball.destroyRaycasts();
-
-    let inc = 4
-    let offset = new Phaser.Math.Vector2(0, 0);
-    if(raycastColl[0]) offset.x += inc;
-    if(raycastColl[1]) offset.x -= inc;
-    if(raycastColl[2]) offset.y += inc;
-    if(raycastColl[3]) offset.y -= inc;
-
-    this.player.teleport(ball.x + offset.x, ball.y + offset.y);
-    this.player.changeScale(0.5, 1);
-    ball.destroy();
-  }
-
-  retrieveBall(){
-    let raycastColl = this.player.checkRaycasts();
-    if((raycastColl[0] && raycastColl[1]) || (raycastColl[2] && raycastColl[3])){
-      return;
-    }
-    let ball = this.playerGroup.getChildren()[1];
-    if(ball == null) return;
-    ball.destroyRaycasts();
-
-    let inc = 4
-    let offset = new Phaser.Math.Vector2(0, 0);
-    if(raycastColl[0]) offset.x += inc;
-    if(raycastColl[1]) offset.x -= inc;
-    if(raycastColl[2]) offset.y += inc;
-    if(raycastColl[3]) offset.y -= inc;
-
-    this.player.teleport(this.player.x + offset.x, this.player.y + offset.y);
-    this.player.changeScale(0.5, 1);
-    ball.destroy();
-  }
-
-  getInput(){
-    // Should be 8 directions, plus no input = 9 possibilities
-    if(cursors.left.isDown && cursors.up.isDown) { return "upLeft" } 
-    else if(cursors.left.isDown && cursors.down.isDown) { return "downLeft" } 
-    else if(cursors.right.isDown && cursors.up.isDown) { return "upRight" } 
-    else if(cursors.right.isDown && cursors.down.isDown) { return "downRight" } 
-    else if(cursors.up.isDown) { return "up" } 
-    else if(cursors.down.isDown) { return "down" } 
-    else if(cursors.left.isDown) { return "left"} 
-    else if(cursors.right.isDown) { return "right";} 
-    else { return "none"; }
   }
 
   getLocationOnGrid(obj){
@@ -178,12 +96,18 @@ class Catch extends Phaser.Scene{
     });
   }
 
-  resetPlayer(){
-    this.player.x = this.currentSpawn.x;
-    this.player.y = this.currentSpawn.y;
+  collideWithKillArea(player, tile){
+    if(this.killArea.culledTiles.includes(tile)){
+      if(player.isBall) { // If the ball hit the kill area, just make the player get it back
+        this.player.retrieveBall(); 
+      } else if (player.isBall == null){ // If player hit the kill area, go back to spawn. If ball was out, take it too
+        if(this.playerGroup.isFull()) this.player.retrieveBall();
+        this.player.teleport(this.currentSpawn.x, this.currentSpawn.y);
+      }
+    }
   }
-
-  loadInteractables(){
+  // When creating levels in Tiled, create the buttons first THEN the door. This code stops working if you do it the other way around
+  loadSpecialTiles(){
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
     this.spawnGroup = this.add.group();
@@ -200,7 +124,6 @@ class Catch extends Phaser.Scene{
       }
       if(properties.name == "door"){
         // Get the targets of the door first, then create the door
-        
         let targets = [];
         let buttons = this.buttonGroup.getChildren();
         for(const button of buttons){

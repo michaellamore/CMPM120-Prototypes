@@ -6,8 +6,12 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     this.setOrigin(0.5);
     this.body.setSize(16, 16, false);
     this.body.setOffset(0, 3);
-    this.isBall = true;
     this.setBounce(0.5, 0.5);
+    this.setTint(0x808080);
+    this.isBall = true;
+    this.scale = 0.5;
+    
+    // Variables to change the way the ball moves when thrown
     this.velX = 160;
     this.velXBig = 270;
     this.velY = 400;
@@ -17,22 +21,24 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     this.acceleration = 550;
     this.drag = 500;
     this.dragBig = 1000;
-    this.setMaxVelocity(this.velX, this.velY)
+
+    this.setMaxVelocity(this.velX, this.velY);
     this.body.setDragX(this.drag);
     
-    this.setTint(0x808080);
-    this.scale = 0.5;
+    // References to scene stuff
+    this.scene = scene;
     this.player = player;
     this.ground = ground;
+
+    // Raycast stuff
     this.ballRaycasts = this.scene.add.group({runChildUpdate: true});
     this.addRaycasts();
-
     this.scene.physics.add.overlap(this.ballRaycasts, this.ground, (raycast, tile)=>{
       if(this.ground.culledTiles.includes(tile)) raycast.isColliding();
     });
 
     // When initializing this object, check the last known input to get direction of throw
-    this.currentAction = this.scene.getInput();
+    this.currentAction = this.getInput();
   }
   
   throw(){
@@ -98,6 +104,19 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     }
   }
 
+  getInput(){
+    // Should be 8 directions, plus no input = 9 possibilities
+    if(cursors.left.isDown && cursors.up.isDown) { return "upLeft" } 
+    else if(cursors.left.isDown && cursors.down.isDown) { return "downLeft" } 
+    else if(cursors.right.isDown && cursors.up.isDown) { return "upRight" } 
+    else if(cursors.right.isDown && cursors.down.isDown) { return "downRight" } 
+    else if(cursors.up.isDown) { return "up" } 
+    else if(cursors.down.isDown) { return "down" } 
+    else if(cursors.left.isDown) { return "left"} 
+    else if(cursors.right.isDown) { return "right";} 
+    else { return "none"; }
+  }
+
   addRaycasts(){
     // Raycast is an Arcade Physics body with no texture. Extra params are target to follow, size, and offset (for placement) 
     let ray1 = new Raycast(this.scene, this.x, this.y, null, 0, this, [6, 4], [5, 14]);
@@ -118,8 +137,11 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
   }
 
   destroyRaycasts(){
-    Phaser.Actions.Call(this.ballRaycasts.getChildren(), (raycast)=>{ 
-      raycast.destroy();
-    });
+    let raycast = this.ballRaycasts.getChildren();
+    // I have to destroy BACKWARDS from the array, because looping through each element gets messed up when doing it normally
+    raycast[3].destroy();
+    raycast[2].destroy();
+    raycast[1].destroy();
+    raycast[0].destroy();
   }
 }

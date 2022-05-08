@@ -11,18 +11,26 @@ class Raycast extends Phaser.Physics.Arcade.Sprite{
     this.target = target;
     this.offset = offset;
     this.colliding = false;
+    this.body.debugBodyColor = 0x468232;
   }
 
   update(){
-    this.body.debugBodyColor = 0x468232;
-    this.colliding = false;
-
     this.x = this.target.x + this.offset[0];
     this.y = this.target.y + this.offset[1];
+    this.reset();
   }
 
   isColliding(){
     this.body.debugBodyColor = 0xa53030;
     this.colliding = true;
+  }
+
+  reset(){
+    this.body.debugBodyColor = 0x468232;
+    this.colliding = false;
+  }
+
+  getColliding(){
+    return this.colliding;
   }
 }
