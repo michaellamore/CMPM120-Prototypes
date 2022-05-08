@@ -80,10 +80,10 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     else if (this.state == "MOVE") this.MOVE(raycast);
     else if (this.state == "JUMP") this.JUMP(raycast);
     else if (this.state == "WALLJUMP") this.WALLJUMP(raycast);
-    else this.IDLE();
+    else this.IDLE(raycast);
   }
 
-  IDLE(){
+  IDLE(raycast){
     // Refresh abilities when on the floor (don't use raycast to check it)
     if(this.body.onFloor()){
       this.canJump = true;
@@ -103,7 +103,10 @@ class Player extends Phaser.Physics.Arcade.Sprite{
 
 
     if(keyLeft.isDown || keyRight.isDown) this.transitionTo("MOVE");
-    if(Phaser.Input.Keyboard.JustDown(keyUp) && this.canJump) this.transitionTo("JUMP");
+    if(Phaser.Input.Keyboard.JustDown(keyUp)){
+      if(this.canJump) this.transitionTo("JUMP");
+      if(this.canWallJump && !this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
+    }
   }
 
   MOVE(raycast){
@@ -145,7 +148,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     // Jumping
     if(Phaser.Input.Keyboard.JustDown(keyUp)){
       if(this.canJump) this.transitionTo("JUMP");
-      if(this.canWallJump && !this.body.onFloor() && (raycast[0] || raycast[1])) this.transitionTo("WALLJUMP");
+      if(this.canWallJump && !this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
     }
   }
 
