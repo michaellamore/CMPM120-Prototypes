@@ -11,7 +11,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
 
     // Reference to stuff from the scene
     this.scene = scene;
-    this.group = group
+    this.group = group;
     this.ground = ground;
 
     // Raycast stuff
@@ -24,12 +24,12 @@ class Player extends Phaser.Physics.Arcade.Sprite{
 
     // Flags
     this.isSmall = false;
+    this.canJump = true;
+    this.canWallJump = true;
     this.canThrow = true;
     this.canTeleport = true;
-
     
     // Variables to change the feel of player movement
-    this.wallJumps = 1;
     this.throwDelay = 50;
     this.teleportDelay = 160;
     this.growthSpeed = 300; // in milliseconds
@@ -38,24 +38,25 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     this.velYBig = 385;
     this.velJumpBig = -385;
     this.accelBig = 800;
-    this.dragBig = 900;
+    this.dragXBig = 900;
+    this.dragYBig = 1300;
     // Player is small
     this.velXSmall = 80;
     this.velYSmall = 300;
     this.velJumpSmall = -300;
     this.accelSmall = 800;
-    this.dragSmall = 900;
+    this.dragXSmall = 900;
+    this.dragYSmall = 1000;
 
     this.setMaxVelocity(this.velXBig, this.velYBig);
+
+    this.state = "IDLE";
+    this.availableStates = ["IDLE", "MOVE", "JUMP", "WALLJUMP", "BUSY"];
   }
   
   update(){
-    let raycasts = this.checkRaycasts();
+    let raycast = this.checkRaycasts();
 
-    // Player on floor = reset any resources that movement uses
-    if(this.body.onFloor()){
-      this.wallJumps = 1;
-    }
     // Reset = going back to spawn and retrieving ball if it's out
     if (Phaser.Input.Keyboard.JustDown(keyReset)){
       if(this.group.isFull()) this.retrieveBall();
@@ -75,6 +76,43 @@ class Player extends Phaser.Physics.Arcade.Sprite{
       this.retrieveBall();
     }
 
+    if(this.state == "BUSY") this.BUSY();
+    else if (this.state == "MOVE") this.MOVE(raycast);
+    else if (this.state == "JUMP") this.JUMP(raycast);
+    else if (this.state == "WALLJUMP") this.WALLJUMP(raycast);
+    else this.IDLE();
+  }
+
+  IDLE(){
+    // Refresh abilities when on the floor (don't use raycast to check it)
+    if(this.body.onFloor()){
+      this.canJump = true;
+      this.canWallJump = true;
+    }
+
+    // Slow player down
+    this.body.setAccelerationX(0);
+    if(this.isSmall) this.body.setDragX(this.dragXSmall);
+    else if (!this.isSmall) this.body.setDragX(this.dragXBig);
+
+    if(this.body.onWall()){
+      this.body.setDragY(this.dragYBig);
+    } else {
+      this.body.setDragY(0);
+    }
+
+
+    if(keyLeft.isDown || keyRight.isDown) this.transitionTo("MOVE");
+    if(Phaser.Input.Keyboard.JustDown(keyUp) && this.canJump) this.transitionTo("JUMP");
+  }
+
+  MOVE(raycast){
+    // Refresh abilities when on the floor (don't use raycast to check it)
+    if(this.body.onFloor()){
+      this.canJump = true;
+      this.canWallJump = true;
+    }
+
     if(this.isSmall){ // If player is small
       // Left and right
       if(keyLeft.isDown) {
@@ -84,40 +122,61 @@ class Player extends Phaser.Physics.Arcade.Sprite{
         this.flipX = false;
         this.body.setAccelerationX(this.accelSmall);
       } else { // Standing still
-        this.body.setAccelerationX(0);
-        this.body.setDragX(this.dragSmall);
+        this.transitionTo("IDLE");
       }
-      // Jumping
-      if(Phaser.Input.Keyboard.JustDown(keyUp)){
-        // If (near) floor
-        if(this.body.onFloor() || raycasts[3]){
-          this.body.setVelocityY(this.velJumpSmall);
-        }
-      }
-    } else { // If the player is big again
+    } else { // If the player is big
       if(keyLeft.isDown) {
         this.flipX = true;
         this.body.setAccelerationX(-this.accelBig);
       } else if(keyRight.isDown) {
         this.flipX = false;
         this.body.setAccelerationX(this.accelBig);
-      } else { // Standing still
-        this.body.setAccelerationX(0);
-        this.body.setDragX(this.dragBig);
+      } else {
+        this.transitionTo("IDLE");
       }
-      // Jumping
-      if(Phaser.Input.Keyboard.JustDown(keyUp)){
-        // If (near) floor
-        if(this.body.onFloor() || raycasts[3]){
-          this.body.setVelocityY(this.velJumpBig);
-        }
-        // If (near) wall
-        if((this.body.onWall() || raycasts[0] || raycasts[1]) && !this.body.onFloor()){
-          if(this.wallJumps <= 0) return;
-          this.body.setVelocityY(this.velJumpSmall);
-          this.wallJumps--;
-        }
-      }
+    }
+
+    if(this.body.onWall()){
+      this.body.setDragY(this.dragYBig);
+    } else {
+      this.body.setDragY(0);
+    }
+
+    // Jumping
+    if(Phaser.Input.Keyboard.JustDown(keyUp)){
+      if(this.canJump) this.transitionTo("JUMP");
+      if(this.canWallJump && !this.body.onFloor() && (raycast[0] || raycast[1])) this.transitionTo("WALLJUMP");
+    }
+  }
+
+  JUMP(raycast){
+    if(this.isSmall) this.body.setVelocityY(this.velJumpSmall);
+    else if (!this.isSmall) this.body.setVelocityY(this.velJumpBig);
+    this.canJump = false;
+
+    this.transitionTo("MOVE");
+  }
+
+  WALLJUMP(raycast){
+    if(raycast[0]) this.body.setVelocityX(this.velXBig);
+    else if(raycast[1]) this.body.setVelocityX(-this.velXBig);
+
+    this.body.setVelocityY(this.velJumpSmall);
+    this.canWallJump = false;
+
+    this.transitionTo("MOVE");
+  }
+
+  BUSY(){
+    
+  }
+
+  transitionTo(state){
+    // If the desired state is valid, continue
+    if(this.availableStates.includes(state)){
+      this.state = state;
+    } else {
+      console.error(`State "${state}" is not valid`);
     }
   }
 
