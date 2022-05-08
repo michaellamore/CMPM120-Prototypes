@@ -19,7 +19,7 @@ class Catch extends Phaser.Scene{
     // Variables and such
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
-    this.currentSpawn = new Phaser.Math.Vector2(32, 128);
+    this.currentSpawn = new Phaser.Math.Vector2(32, 128); // Change this to X and Y of level you want to test
 
     // Input
     cursors = this.input.keyboard.createCursorKeys();
@@ -79,9 +79,7 @@ class Catch extends Phaser.Scene{
       duration: 300,
       repeat: 0,
     })
-    tween.on("complete", ()=>{
-      this.cameraInPosition = true;
-    });
+    tween.on("complete", ()=>{ this.cameraInPosition = true; });
   }
 
   updateSpawnpoint(){

@@ -59,7 +59,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     // Reset = going back to spawn and retrieving ball if it's out
     if (Phaser.Input.Keyboard.JustDown(keyReset)){
       if(this.group.isFull()) this.retrieveBall();
-      this.teleport(this.currentSpawn.x, this.currentSpawn.y);
+      this.teleport(this.scene.currentSpawn.x, this.scene.currentSpawn.y);
     };
     // If arrow key is used, throw ball or teleport to it
     if (Phaser.Input.Keyboard.JustDown(cursors.left) || Phaser.Input.Keyboard.JustDown(cursors.right) || 
