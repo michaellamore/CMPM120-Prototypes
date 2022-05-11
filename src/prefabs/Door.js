@@ -21,8 +21,8 @@ class Door extends Obstacle{
   }
 
   close(){
-    this.body.debugBodyColor = 0xa53030;
     if(this.stayOpen) return;
+    this.body.debugBodyColor = 0xa53030;
     this.body.setEnable(true);
     this.alpha = 1;
   }

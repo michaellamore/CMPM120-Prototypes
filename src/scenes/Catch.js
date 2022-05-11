@@ -6,19 +6,22 @@ class Catch extends Phaser.Scene{
   preload(){
     this.load.path = "./assets/";
     this.load.image('player', 'testPlayer.png');
+    this.load.image('playerInactive', 'testPlayerInactive.png');
     this.load.image('button', 'button.png');
     this.load.image('door', 'door.png');
 
     // Test level
     this.load.image('tiles', "tiles.png");
-    this.load.tilemapTiledJSON('tilemap', 'testLevel.json');
-    this.load.json('levelJSON', 'testLevel.json')
+    this.load.tilemapTiledJSON('tilemap', 'levels.json');
+    this.load.json('levelJSON', 'levels.json')
   }
 
   create(){
     // Variables and such
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
+    let interactables = this.levelJSON.layers[1].objects;
+    console.log(interactables);
     this.currentSpawn = new Phaser.Math.Vector2(32, 128); // Change this to X and Y of level you want to test
 
     // Input
@@ -31,12 +34,12 @@ class Catch extends Phaser.Scene{
     keyDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
 
     // Camera + flags
-    this.cameras.main.setBackgroundColor('#253a5e');
+    this.cameras.main.setBackgroundColor('#577277');
     this.cameraInPosition = true;
     
     // Tileset stuff
     const map = this.make.tilemap({key: "tilemap", tileWidth: 8, tileHeight: 8});
-    const tileset = map.addTilesetImage("tempTileset", 'tiles', 8, 8, 0, 0);
+    const tileset = map.addTilesetImage("tilesetNew", 'tiles', 8, 8, 0, 0);
     this.ground = map.createLayer('ground', tileset, 0, 0);
     this.ground.setCollisionByProperty({collides: true});
     this.killArea = map.createLayer('killArea', tileset, 0, 0);
@@ -44,21 +47,27 @@ class Catch extends Phaser.Scene{
     
     // Player
     this.playerGroup = this.add.group({maxSize: 2, runChildUpdate: true});
-    this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0, this.playerGroup, this.ground);
+    this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0);
+    this.player.alpha = 1;
     this.playerGroup.add(this.player);
+
+    this.playerManager = new PlayerManager(this);
 
     // Collision stuff
     this.physics.add.collider(this.playerGroup, this.ground);
     this.physics.add.overlap(this.playerGroup, this.killArea, this.collideWithKillArea, null, this);
 
     // Load custom tiles that use JS prefabs from Tiled
-    this.loadSpecialTiles();
+    // this.loadSpecialTiles();
   }
 
   update(){
     // Camera and spawn points will automatically change based on player position
     if(this.cameraInPosition) this.updateCamera();
-    this.updateSpawnpoint();
+    // this.updateSpawnpoint();
+    if(Phaser.Input.Keyboard.JustDown(cursors.up) && !this.playerGroup.isFull()) this.playerManager.throwRedCharacter();
+    if(Phaser.Input.Keyboard.JustDown(cursors.right) && this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
+    if(Phaser.Input.Keyboard.JustDown(cursors.down) && this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer();
   }
 
   getLocationOnGrid(obj){
@@ -104,6 +113,7 @@ class Catch extends Phaser.Scene{
       }
     }
   }
+
   // When creating levels in Tiled, create the buttons first THEN the door. This code stops working if you do it the other way around
   loadSpecialTiles(){
     this.doorGroup = this.add.group({runChildUpdate: true});
@@ -113,6 +123,7 @@ class Catch extends Phaser.Scene{
     this.physics.add.collider(this.playerGroup, this.doorGroup);
 
     let interactables = this.levelJSON.layers[1].objects;
+    console.log(interactables);
     for(const obj of interactables){
       let properties = obj.properties[0];
       let offset = new Phaser.Math.Vector2(0, -8); // idk why I even need the offset, Tiled is wild

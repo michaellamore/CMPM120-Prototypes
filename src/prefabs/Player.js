@@ -1,5 +1,5 @@
 class Player extends Phaser.Physics.Arcade.Sprite{
-  constructor(scene, x, y, texture, frame, group, ground){
+  constructor(scene, x, y, texture, frame){
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
     scene.physics.add.existing(this);
@@ -11,8 +11,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
 
     // Reference to stuff from the scene
     this.scene = scene;
-    this.group = group;
-    this.ground = ground;
+    this.ground = this.scene.ground;
 
     // Raycast stuff
     this.playerRaycasts = this.scene.add.group({runChildUpdate: true});
@@ -23,9 +22,8 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     this.addRaycasts();
 
     // Flags
-    this.isSmall = false;
+    this.isActive = true;
     this.canJump = true;
-    this.canWallJump = true;
     this.canThrow = true;
     this.canTeleport = true;
     
@@ -40,41 +38,30 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     this.accelBig = 800;
     this.dragXBig = 900;
     this.dragYBig = 1300;
-    // Player is small
-    this.velXSmall = 80;
-    this.velYSmall = 300;
-    this.velJumpSmall = -300;
-    this.accelSmall = 800;
-    this.dragXSmall = 900;
-    this.dragYSmall = 1000;
 
     this.setMaxVelocity(this.velXBig, this.velYBig);
+
+    this.currentColor = "purple";
+    if(this.currentColor == "red") this.setTint(0xa53030);
+    if(this.currentColor == "blue") this.setTint(0x4f8fba);
+    if(this.currentColor == "purple") this.setTint(0xa23e8c);
 
     this.state = "IDLE";
     this.availableStates = ["IDLE", "MOVE", "JUMP", "WALLJUMP", "BUSY"];
   }
   
   update(){
+    if(this.currentColor == "red") this.setTint(0xa53030);
+    if(this.currentColor == "blue") this.setTint(0x4f8fba);
+    if(this.currentColor == "purple") this.setTint(0xa23e8c);
+    if(!this.isActive){
+      this.body.setAccelerationX(0);
+      this.body.setDragX(this.dragXBig);
+      this.setTexture('playerInactive');
+      return;
+    } 
+    this.setTexture('player')
     let raycast = this.checkRaycasts();
-
-    // Reset = going back to spawn and retrieving ball if it's out
-    if (Phaser.Input.Keyboard.JustDown(keyReset)){
-      if(this.group.isFull()) this.retrieveBall();
-      this.teleport(this.scene.currentSpawn.x, this.scene.currentSpawn.y);
-    };
-    // If arrow key is used, throw ball or teleport to it
-    if (Phaser.Input.Keyboard.JustDown(cursors.left) || Phaser.Input.Keyboard.JustDown(cursors.right) || 
-    Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(cursors.down)){   
-      if(!this.group.isFull() && this.canThrow){
-        this.throwBall();
-      } else if (this.group.isFull() && this.canTeleport){
-        this.teleportToBall();
-      }
-    }
-    // Retrieve the ball if it's out
-    if(Phaser.Input.Keyboard.JustDown(keyAction) && this.group.isFull()){
-      this.retrieveBall();
-    }
 
     if(this.state == "BUSY") this.BUSY();
     else if (this.state == "MOVE") this.MOVE(raycast);
@@ -87,20 +74,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     // Refresh abilities when on the floor (don't use raycast to check it)
     if(this.body.onFloor()){
       this.canJump = true;
-      this.canWallJump = true;
     }
-
-    // Slow player down
-    this.body.setAccelerationX(0);
-    if(this.isSmall) this.body.setDragX(this.dragXSmall);
-    else if (!this.isSmall) this.body.setDragX(this.dragXBig);
-
-    if(this.body.onWall()){
-      this.body.setDragY(this.dragYBig);
-    } else {
-      this.body.setDragY(0);
-    }
-
 
     if(keyLeft.isDown || keyRight.isDown) this.transitionTo("MOVE");
     if(Phaser.Input.Keyboard.JustDown(keyUp)){
@@ -112,31 +86,18 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   MOVE(raycast){
     // Refresh abilities when on the floor (don't use raycast to check it)
     if(this.body.onFloor()){
-      this.canJump = true;
-      this.canWallJump = true;
+      this.canJump = true;   
     }
 
-    if(this.isSmall){ // If player is small
-      // Left and right
-      if(keyLeft.isDown) {
-        this.flipX = true;
-        this.body.setAccelerationX(-this.accelSmall);
-      } else if(keyRight.isDown) {
-        this.flipX = false;
-        this.body.setAccelerationX(this.accelSmall);
-      } else { // Standing still
-        this.transitionTo("IDLE");
-      }
-    } else { // If the player is big
-      if(keyLeft.isDown) {
-        this.flipX = true;
-        this.body.setAccelerationX(-this.accelBig);
-      } else if(keyRight.isDown) {
-        this.flipX = false;
-        this.body.setAccelerationX(this.accelBig);
-      } else {
-        this.transitionTo("IDLE");
-      }
+    this.body.setAccelerationX(0);
+    this.body.setDragX(this.dragXBig);
+
+    if(keyLeft.isDown) {
+      this.flipX = true;
+      this.body.setAccelerationX(-this.accelBig);
+    } else if(keyRight.isDown) {
+      this.flipX = false;
+      this.body.setAccelerationX(this.accelBig);
     }
 
     if(this.body.onWall()){
@@ -148,25 +109,28 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     // Jumping
     if(Phaser.Input.Keyboard.JustDown(keyUp)){
       if(this.canJump) this.transitionTo("JUMP");
-      if(this.canWallJump && !this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
+      if(!this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
     }
+
+    if(this.body.velocity.x == 0 && this.body.velocity.y == 0) this.transitionTo("IDLE");
   }
 
   JUMP(raycast){
-    if(this.isSmall) this.body.setVelocityY(this.velJumpSmall);
-    else if (!this.isSmall) this.body.setVelocityY(this.velJumpBig);
+    this.body.setVelocityY(this.velJumpBig);
     this.canJump = false;
-
     this.transitionTo("MOVE");
   }
 
   WALLJUMP(raycast){
-    if(raycast[0]) this.body.setVelocityX(this.velXBig);
-    else if(raycast[1]) this.body.setVelocityX(-this.velXBig);
-
-    this.body.setVelocityY(this.velJumpSmall);
-    this.canWallJump = false;
-
+    if(raycast[0]) {
+      this.body.setAccelerationX(this.accelBig);
+      this.body.setVelocityX(this.velXBig);
+    }
+    else if(raycast[1]){
+      this.body.setAccelerationX(-this.accelBig);
+      this.body.setVelocityX(-this.velXBig);
+    }
+    this.body.setVelocityY(this.velJumpBig);
     this.transitionTo("MOVE");
   }
 
@@ -184,87 +148,9 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   }
 
   teleport(x, y){
-    this.body.setVelocityY(this.velJumpSmall/3);
+    this.body.setVelocityY(this.velJumpBig/3);
     this.x = x;
     this.y = y;
-  }
-
-  changeScale(initial, final){
-    if(final == 1){
-      this.canThrow = false;
-      this.isSmall = false;
-      this.setMaxVelocity(this.velXBig, this.velYBig);
-      this.scene.time.addEvent({
-        delay: this.throwDelay, 
-        callback: ()=>{ this.canThrow = true },
-      })
-    }
-    if(final < 1){
-      this.canTeleport = false;
-      this.isSmall = true;
-      this.setMaxVelocity(this.velXSmall, this.velYSmall);
-      this.scene.time.addEvent({
-        delay: this.teleportDelay, 
-        callback: ()=>{ this.canTeleport = true },
-      })
-    }
-
-    this.scene.tweens.add({
-      targets: this,
-      scale: {from: initial, to: final},
-      ease: "Sine.easeInOut",
-      duration: this.growthSpeed,
-      repeat: 0,
-      yoyo: false
-    })
-  }
-
-  throwBall(){
-    let ball = new Ball(this.scene, this.x, this.y, 'player', 0, this, this.ground);
-    ball.throw();
-    this.group.add(ball);
-    this.changeScale(1, 0.5);
-  }
-
-  teleportToBall(){
-    let ball = this.group.getChildren()[1];
-    let raycastColl = ball.checkRaycasts();
-    if((raycastColl[0] && raycastColl[1]) || (raycastColl[2] && raycastColl[3])){
-      return;
-    }
-    let inc = 4
-    let offset = new Phaser.Math.Vector2(0, 0);
-    // If player is near anything, add extra offset to teleport so that they don't clip in
-    if(raycastColl[0]) offset.x += inc;
-    if(raycastColl[1]) offset.x -= inc;
-    if(raycastColl[2]) offset.y += inc;
-    if(raycastColl[3]) offset.y -= inc;
-
-    this.teleport(ball.x + offset.x, ball.y + offset.y);
-    this.changeScale(0.5, 1);
-    ball.destroyRaycasts();
-    ball.destroy();
-  }
-
-  retrieveBall(){
-    let raycastColl = this.checkRaycasts();
-    if((raycastColl[0] && raycastColl[1]) || (raycastColl[2] && raycastColl[3])){
-      return;
-    }
-    let ball = this.group.getChildren()[1];
-    if(ball == null) return;
-
-    let inc = 4
-    let offset = new Phaser.Math.Vector2(0, 0);
-    if(raycastColl[0]) offset.x += inc;
-    if(raycastColl[1]) offset.x -= inc;
-    if(raycastColl[2]) offset.y += inc;
-    if(raycastColl[3]) offset.y -= inc;
-
-    this.teleport(this.x + offset.x, this.y + offset.y);
-    this.changeScale(0.5, 1);
-    ball.destroyRaycasts();
-    ball.destroy();
   }
 
   addRaycasts(){
@@ -282,5 +168,14 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     let array = [];
     Phaser.Actions.Call(this.playerRaycasts.getChildren(), (raycast)=>{ array.push(raycast.getColliding()); });
     return array;
+  }
+
+  customDestroy(){
+    let raycast = this.playerRaycasts.getChildren();
+    raycast[3].destroy();
+    raycast[2].destroy();
+    raycast[1].destroy();
+    raycast[0].destroy();
+    this.destroy();
   }
 }
