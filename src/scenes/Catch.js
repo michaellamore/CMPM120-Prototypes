@@ -7,8 +7,12 @@ class Catch extends Phaser.Scene{
     this.load.path = "./assets/";
     this.load.image('player', 'testPlayer.png');
     this.load.image('playerInactive', 'testPlayerInactive.png');
-    this.load.image('button', 'button.png');
-    this.load.image('door', 'door.png');
+    this.load.image('purpleButton', 'purpleButton.png');
+    this.load.image('purpleDoor', 'purpleDoor.png');
+    this.load.image('blueButton', 'blueButton.png');
+    this.load.image('blueDoor', 'blueDoor.png');
+    this.load.image('redButton', 'redButton.png');
+    this.load.image('redDoor', 'redDoor.png');
 
     // Test level
     this.load.image('tiles', "tiles.png");
@@ -20,9 +24,11 @@ class Catch extends Phaser.Scene{
     // Variables and such
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
-    let interactables = this.levelJSON.layers[1].objects;
-    console.log(interactables);
     this.currentSpawn = new Phaser.Math.Vector2(32, 128); // Change this to X and Y of level you want to test
+    this.doorGroup = this.add.group({runChildUpdate: true});
+    this.buttonGroup = this.add.group({runChildUpdate: true});
+    
+    this.spawnPoints = this.add.group();  
 
     // Input
     cursors = this.input.keyboard.createCursorKeys();
@@ -50,15 +56,18 @@ class Catch extends Phaser.Scene{
     this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0);
     this.player.alpha = 1;
     this.playerGroup.add(this.player);
-
     this.playerManager = new PlayerManager(this);
 
     // Collision stuff
     this.physics.add.collider(this.playerGroup, this.ground);
+    this.physics.add.collider(this.playerGroup, this.doorGroup);
+    this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=>{
+      if(player.currentColor == button.color || player.currentColor == "purple") button.isOverlapping();
+    })
     this.physics.add.overlap(this.playerGroup, this.killArea, this.collideWithKillArea, null, this);
 
     // Load custom tiles that use JS prefabs from Tiled
-    // this.loadSpecialTiles();
+    this.loadSpecialTiles();
   }
 
   update(){
@@ -93,7 +102,7 @@ class Catch extends Phaser.Scene{
 
   updateSpawnpoint(){
     let playerGridPos = this.getLocationOnGrid(this.player);
-    Phaser.Actions.Call(this.spawnGroup.getChildren(), (spawn)=>{ 
+    Phaser.Actions.Call(this.spawnPoints.getChildren(), (spawn)=>{ 
       let spawnPos = spawn.getPos();
       let spawnGridPos = this.getLocationOnGrid(spawnPos);
       if(playerGridPos.x == spawnGridPos.x && playerGridPos.y == spawnGridPos.y){
@@ -116,40 +125,57 @@ class Catch extends Phaser.Scene{
 
   // When creating levels in Tiled, create the buttons first THEN the door. This code stops working if you do it the other way around
   loadSpecialTiles(){
-    this.doorGroup = this.add.group({runChildUpdate: true});
-    this.buttonGroup = this.add.group({runChildUpdate: true});
-    this.spawnGroup = this.add.group();
-    this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=> { button.isColliding(); });
-    this.physics.add.collider(this.playerGroup, this.doorGroup);
-
     let interactables = this.levelJSON.layers[1].objects;
-    console.log(interactables);
+    let availableDoors = ["blueDoor", "redDoor", "purpleDoor"];
+    let availableButtons = ["blueButton", "redButton", "purpleButton"];
+    let offset = new Phaser.Math.Vector2(0, -8); // Not sure why I even need an offset, but it doesn't work without it..
+
     for(const obj of interactables){
-      let properties = obj.properties[0];
-      let offset = new Phaser.Math.Vector2(0, -8); // idk why I even need the offset, Tiled is wild
-      if(properties.name == "button"){
-        let button = new Button(this, obj.x+offset.x, obj.y+offset.y, 'button', 0, this.playerGroup.getChildren(), properties.value);
+      let currentObj;
+      let currentId;
+      let currentLevel;
+      let startOpen = false;
+
+      // Parse the JSON correctly and set it to the variables above
+      for(const property of obj.properties){
+        if(availableDoors.includes(property.name) || availableButtons.includes(property.name)){
+          currentId = property.value;
+          currentObj = property.name;
+        }
+
+        if(property.name == "level") currentLevel = property.value;
+        else if(property.name == "startOpen") startOpen = property.value;
+        else if(property.name == "spawnpoint") currentObj = property.name;
+        
+      }
+      console.log(currentObj, currentId, currentLevel, startOpen);
+
+      // Instantiate prefabs based on parsed info
+      if(availableButtons.includes(currentObj)){
+        let color;
+        if(currentObj == "blueButton") color = "blue";
+        else if (currentObj == "redButton") color = "red";
+        else if (currentObj == "purpleButton") color = "purple";
+        else console.warn(`Button "${currentObj}" is invalid.`);
+        let button = new Button(this, obj.x+offset.x, obj.y+offset.y, currentObj, 0, color, currentId, currentLevel);
         this.buttonGroup.add(button);
       }
-      if(properties.name == "door"){
-        // Get the targets of the door first, then create the door
-        let targets = [];
-        let buttons = this.buttonGroup.getChildren();
-        for(const button of buttons){
-          if(button.id == properties.value) targets.push(button);
-        }
-        let door = new Door(this, obj.x+offset.x, obj.y+offset.y, 'door', 0, properties.value, targets);
+      if(availableDoors.includes(currentObj)){
+        let color;
+        if(currentObj == "blueDoor") color = "blue";
+        else if (currentObj == "redDoor") color = "red";
+        else if (currentObj == "purpleDoor") color = "purple";
+        else console.warn(`Door "${currentObj}" is invalid.`);
+        let door = new Door(this, obj.x+offset.x, obj.y+offset.y, currentObj, 0, color, currentId, currentLevel, startOpen);
         this.doorGroup.add(door);
-        if(obj.properties[1] != null){
-          let staysOpen = obj.properties[1].value;
-          if(staysOpen) door.stayOpen = true;
-        }
+      }
+      if(currentObj == "spawnpoint") {
+        let spawnpoint = new Spawn(this, obj.x+offset.x, obj.y+offset.y, null, 0);
+        this.spawnPoints.add(spawnpoint);
       }
 
-      if(properties.name == "spawnpoint"){
-        let spawn = new Spawn(this, obj.x + offset.x, obj.y+offset.y, null, 0);
-        this.spawnGroup.add(spawn);
-      }
+      // Now do stuff that requires everything to be loaded to work properly
+      Phaser.Actions.Call(this.doorGroup.getChildren(), (door)=>{ door.getTargets() })
     }
   } 
 }

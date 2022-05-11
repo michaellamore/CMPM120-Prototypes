@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.6.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="8">
+<map version="1.8" tiledversion="1.8.4" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="24">
  <editorsettings>
   <export target="levels.json" format="json"/>
  </editorsettings>
@@ -32,6 +32,7 @@
   </tile>
   <tile id="5">
    <properties>
+    <property name="level" type="int" value="0"/>
     <property name="purpleButton" type="int" value="0"/>
    </properties>
   </tile>
@@ -74,17 +75,22 @@
   </tile>
   <tile id="13">
    <properties>
-    <property name="purpleButton" type="int" value="0"/>
+    <property name="level" type="int" value="0"/>
+    <property name="purpleDoor" type="int" value="0"/>
    </properties>
   </tile>
   <tile id="14">
    <properties>
+    <property name="level" type="int" value="0"/>
     <property name="redDoor" type="int" value="0"/>
+    <property name="startOpen" type="bool" value="false"/>
    </properties>
   </tile>
   <tile id="15">
    <properties>
     <property name="blueDoor" type="int" value="0"/>
+    <property name="level" type="int" value="0"/>
+    <property name="startOpen" type="bool" value="false"/>
    </properties>
   </tile>
   <tile id="16">
@@ -238,30 +244,60 @@
 </data>
  </layer>
  <objectgroup id="2" name="interactables">
-  <object id="1" gid="14" x="312" y="152" width="8" height="8">
+  <object id="6" gid="22" x="136" y="152" width="8" height="8">
    <properties>
-    <property name="purpleButton" type="int" value="1"/>
+    <property name="spawnpoint" type="bool" value="true"/>
    </properties>
   </object>
-  <object id="2" gid="7" x="232" y="112" width="8" height="8">
+  <object id="12" gid="8" x="40" y="168" width="8" height="8">
+   <properties>
+    <property name="blueButton" type="int" value="1"/>
+    <property name="level" type="int" value="1"/>
+   </properties>
+  </object>
+  <object id="13" gid="16" x="40" y="16" width="8" height="8">
+   <properties>
+    <property name="blueDoor" type="int" value="1"/>
+    <property name="level" type="int" value="1"/>
+    <property name="startOpen" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="18" gid="7" x="224" y="112" width="8" height="8">
    <properties>
     <property name="level" type="int" value="1"/>
     <property name="redButton" type="int" value="1"/>
    </properties>
   </object>
-  <object id="3" gid="15" x="256" y="96" width="8" height="8">
+  <object id="19" gid="15" x="256" y="96" width="8" height="8">
    <properties>
+    <property name="level" type="int" value="1"/>
     <property name="redDoor" type="int" value="1"/>
+    <property name="startOpen" type="bool" value="false"/>
    </properties>
   </object>
-  <object id="4" gid="6" x="280" y="112" width="8" height="8">
+  <object id="20" gid="6" x="280" y="112" width="8" height="8">
    <properties>
+    <property name="level" type="int" value="1"/>
     <property name="purpleButton" type="int" value="1"/>
    </properties>
   </object>
-  <object id="6" gid="22" x="136" y="152" width="8" height="8">
+  <object id="21" gid="14" x="312" y="152" width="8" height="8">
    <properties>
-    <property name="spawnpoint" type="bool" value="true"/>
+    <property name="level" type="int" value="1"/>
+    <property name="purpleDoor" type="int" value="1"/>
+   </properties>
+  </object>
+  <object id="22" gid="8" x="112" y="168" width="8" height="8">
+   <properties>
+    <property name="blueButton" type="int" value="2"/>
+    <property name="level" type="int" value="1"/>
+   </properties>
+  </object>
+  <object id="23" gid="16" x="120" y="80" width="8" height="8">
+   <properties>
+    <property name="blueDoor" type="int" value="2"/>
+    <property name="level" type="int" value="1"/>
+    <property name="startOpen" type="bool" value="false"/>
    </properties>
   </object>
  </objectgroup>
