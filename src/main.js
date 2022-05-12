@@ -17,7 +17,7 @@ let config = {
     arcade: {
       gravity: {y: 0},
       tileBias: 8,
-      debug: true
+      debug: false
     }
   },
   scene: [Catch]

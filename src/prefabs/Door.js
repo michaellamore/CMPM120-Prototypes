@@ -56,10 +56,10 @@ class Door extends Obstacle{
   openAllDoors(){
     this.openedAllFlag = true;
     Phaser.Actions.Call(this.scene.doorGroup.getChildren(), (door)=>{
-      console.log(door.level);
       if(door.level == this.level){
         door.stayOpen = true;
         door.open();
+        door.body.setEnable(false);
       }
     })
   }

@@ -13,6 +13,7 @@ class Catch extends Phaser.Scene{
     this.load.image('blueDoor', 'blueDoor.png');
     this.load.image('redButton', 'redButton.png');
     this.load.image('redDoor', 'redDoor.png');
+    this.load.image('resetPanel', 'resetPanel.png');
 
     // Test level
     this.load.image('tiles', "tiles.png");
@@ -27,7 +28,7 @@ class Catch extends Phaser.Scene{
     this.currentSpawn = new Phaser.Math.Vector2(32, 128); // Change this to X and Y of level you want to test
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
-    
+    this.resetPanels = this.add.group();
     this.spawnPoints = this.add.group();  
 
     // Input
@@ -42,6 +43,7 @@ class Catch extends Phaser.Scene{
     // Camera + flags
     this.cameras.main.setBackgroundColor('#577277');
     this.cameraInPosition = true;
+    this.cameraTarget;
     
     // Tileset stuff
     const map = this.make.tilemap({key: "tilemap", tileWidth: 8, tileHeight: 8});
@@ -57,6 +59,7 @@ class Catch extends Phaser.Scene{
     this.player.alpha = 1;
     this.playerGroup.add(this.player);
     this.playerManager = new PlayerManager(this);
+    this.playerManager.refreshPlayers();
 
     // Collision stuff
     this.physics.add.collider(this.playerGroup, this.ground);
@@ -64,7 +67,22 @@ class Catch extends Phaser.Scene{
     this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=>{
       if(player.currentColor == button.color || player.currentColor == "purple") button.isOverlapping();
     })
-    this.physics.add.overlap(this.playerGroup, this.killArea, this.collideWithKillArea, null, this);
+
+    this.physics.add.overlap(this.playerGroup, this.killArea, (player, panel)=>{
+      if(this.killArea.culledTiles.includes(panel)){
+        if(player.currentColor == "purple"){
+          this.playerManager.teleport(player, this.currentSpawn.x, this.currentSpawn.y);
+        } else {
+          if(player.isActive) this.playerManager.changeActivePlayer();
+          this.playerManager.retrieveInactivePlayer();
+        }
+      }
+    });
+    this.physics.add.overlap(this.playerGroup, this.resetPanels, (player, panel)=>{
+      if(player.currentColor == "purple") return;
+      if(player.isActive) this.playerManager.changeActivePlayer();
+      this.playerManager.retrieveInactivePlayer();
+    })
 
     // Load custom tiles that use JS prefabs from Tiled
     this.loadSpecialTiles();
@@ -86,7 +104,7 @@ class Catch extends Phaser.Scene{
   }
 
   updateCamera(){
-    let gridLocation = this.getLocationOnGrid(this.player);
+    let gridLocation = this.getLocationOnGrid(this.cameraTarget);
     let target = new Phaser.Math.Vector2(gridLocation.x * width, gridLocation.y * height);
     this.cameraInPosition = false;
     let tween = this.tweens.add({
@@ -146,9 +164,10 @@ class Catch extends Phaser.Scene{
         if(property.name == "level") currentLevel = property.value;
         else if(property.name == "startOpen") startOpen = property.value;
         else if(property.name == "spawnpoint") currentObj = property.name;
+        else if(property.name == "resetPanel") currentObj = property.name;
         
       }
-      console.log(currentObj, currentId, currentLevel, startOpen);
+      // console.log(currentObj, currentId, currentLevel, startOpen);
 
       // Instantiate prefabs based on parsed info
       if(availableButtons.includes(currentObj)){
@@ -160,6 +179,7 @@ class Catch extends Phaser.Scene{
         let button = new Button(this, obj.x+offset.x, obj.y+offset.y, currentObj, 0, color, currentId, currentLevel);
         this.buttonGroup.add(button);
       }
+
       if(availableDoors.includes(currentObj)){
         let color;
         if(currentObj == "blueDoor") color = "blue";
@@ -169,13 +189,18 @@ class Catch extends Phaser.Scene{
         let door = new Door(this, obj.x+offset.x, obj.y+offset.y, currentObj, 0, color, currentId, currentLevel, startOpen);
         this.doorGroup.add(door);
       }
+
+      if(currentObj == "resetPanel") {
+        let resetPanel = new ResetPanel(this, obj.x+offset.x, obj.y+offset.y, currentObj, 0);
+        this.resetPanels.add(resetPanel);
+      }
+
       if(currentObj == "spawnpoint") {
         let spawnpoint = new Spawn(this, obj.x+offset.x, obj.y+offset.y, null, 0);
         this.spawnPoints.add(spawnpoint);
       }
-
-      // Now do stuff that requires everything to be loaded to work properly
-      Phaser.Actions.Call(this.doorGroup.getChildren(), (door)=>{ door.getTargets() })
     }
+    // Now do stuff that requires everything to be loaded to work properly
+    Phaser.Actions.Call(this.doorGroup.getChildren(), (door)=>{ door.getTargets() })
   } 
 }

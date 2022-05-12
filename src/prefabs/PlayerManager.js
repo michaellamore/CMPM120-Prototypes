@@ -16,7 +16,7 @@ class PlayerManager {
       x: this.activePlayer.x,
       y: this.activePlayer.y,
       alpha: 0,
-      ease: "Sine.easeIn",
+      ease: "Sine.easeInOut",
       duration: duration,
     })
     this.tween.on('complete', ()=>{
@@ -26,8 +26,24 @@ class PlayerManager {
     })
   }
 
+  teleport(target, x, y){
+    this.canSwap = false;
+    let duration = 300;
+    this.tween = this.scene.tweens.add({
+      targets: target,
+      x: x,
+      y: y,
+      ease: "Sine.easeInOut",
+      duration: duration,
+    })
+    this.tween.on('complete', ()=>{
+      this.canSwap = true;
+    })
+  }
+
   throwRedCharacter(){
     this.refreshPlayers();
+    if(!this.canSwap) return;
 
     // add red player
     let redPlayer = new Player(this.scene, this.activePlayer.x, this.activePlayer.y, 'player', 0);
@@ -50,6 +66,7 @@ class PlayerManager {
     Phaser.Actions.Call(this.scene.playerGroup.getChildren(), (player)=>{
       if(player.isActive) this.activePlayer = player;
       if(!player.isActive) this.inactivePlayer = player;
+      this.scene.cameraTarget = this.activePlayer;
     })
   }
 

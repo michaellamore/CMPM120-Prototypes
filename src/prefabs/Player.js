@@ -27,14 +27,10 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     this.canThrow = true;
     this.canTeleport = true;
     
-    // Variables to change the feel of player movement
-    this.throwDelay = 50;
-    this.teleportDelay = 160;
-    this.growthSpeed = 300; // in milliseconds
-    // Player is big
+    // Variables to change player feel
     this.velXBig = 150;
-    this.velYBig = 385;
-    this.velJumpBig = -385;
+    this.velYBig = 400;
+    this.velJumpBig = -400;
     this.accelBig = 800;
     this.dragXBig = 900;
     this.dragYBig = 1300;
@@ -51,6 +47,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   }
   
   update(){
+    // Change player tint depending on what player is and if they're active
     if(this.currentColor == "red") this.setTint(0xa53030);
     if(this.currentColor == "blue") this.setTint(0x4f8fba);
     if(this.currentColor == "purple") this.setTint(0xa23e8c);
@@ -60,9 +57,9 @@ class Player extends Phaser.Physics.Arcade.Sprite{
       this.setTexture('playerInactive');
       return;
     } 
-    this.setTexture('player')
-    let raycast = this.checkRaycasts();
+    this.setTexture('player');
 
+    let raycast = this.checkRaycasts();
     if(this.state == "BUSY") this.BUSY();
     else if (this.state == "MOVE") this.MOVE(raycast);
     else if (this.state == "JUMP") this.JUMP(raycast);
@@ -76,11 +73,11 @@ class Player extends Phaser.Physics.Arcade.Sprite{
       this.canJump = true;
     }
 
-    if(keyLeft.isDown || keyRight.isDown) this.transitionTo("MOVE");
     if(Phaser.Input.Keyboard.JustDown(keyUp)){
-      if(this.canJump) this.transitionTo("JUMP");
-      if(this.canWallJump && !this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
-    }
+      if(this.canJump || raycast[3]) this.transitionTo("JUMP");
+      else if(!this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
+    } else if(keyLeft.isDown || keyRight.isDown) this.transitionTo("MOVE");
+    
   }
 
   MOVE(raycast){
@@ -100,24 +97,29 @@ class Player extends Phaser.Physics.Arcade.Sprite{
       this.body.setAccelerationX(this.accelBig);
     }
 
-    if(this.body.onWall()){
-      this.body.setDragY(this.dragYBig);
-    } else {
-      this.body.setDragY(0);
-    }
+    // if(this.body.onWall() && (keyLeft.isDown || keyRight.isDown) && !this.body.onFloor()){
+    //   this.body.setDragY(this.dragYBig);
+    // } else {
+    //   this.body.setDragY(0);
+    // }
 
     // Jumping
     if(Phaser.Input.Keyboard.JustDown(keyUp)){
-      if(this.canJump) this.transitionTo("JUMP");
-      if(!this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
+      if(this.canJump || raycast[3]) this.transitionTo("JUMP");
+      else if(!this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
     }
 
-    if(this.body.velocity.x == 0 && this.body.velocity.y == 0) this.transitionTo("IDLE");
+    if(this.body.velocity.x == 0 && this.body.velocity.y == 0 && this.body.acceleration.x == 0 && this.body.acceleration.y == 0) {
+      this.transitionTo("IDLE");
+    }
+      
   }
 
   JUMP(raycast){
     this.body.setVelocityY(this.velJumpBig);
     this.canJump = false;
+
+    if(!this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
     this.transitionTo("MOVE");
   }
 
@@ -141,6 +143,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   transitionTo(state){
     // If the desired state is valid, continue
     if(this.availableStates.includes(state)){
+      // console.log(`Transitioning to ${state}`);
       this.state = state;
     } else {
       console.error(`State "${state}" is not valid`);
@@ -155,10 +158,10 @@ class Player extends Phaser.Physics.Arcade.Sprite{
 
   addRaycasts(){
     // Raycast is an Arcade Physics body with no texture. Extra params are target to follow, size, and offset (for placement) 
-    let ray1 = new Raycast(this.scene, this.x, this.y, null, 0, this, [6, 4], [5, 14]);
-    let ray2 = new Raycast(this.scene, this.x, this.y, null, 0, this, [6, 4], [21, 14]);
-    let ray3 = new Raycast(this.scene, this.x, this.y, null, 0, this, [4, 6], [14, 6]);
-    let ray4 = new Raycast(this.scene, this.x, this.y, null, 0, this, [4, 6], [14, 22]);
+    let ray1 = new Raycast(this.scene, this.x, this.y, null, 0, this, [6, 14], [2, 10]);
+    let ray2 = new Raycast(this.scene, this.x, this.y, null, 0, this, [6, 14], [24, 10]);
+    let ray3 = new Raycast(this.scene, this.x, this.y, null, 0, this, [14, 6], [9, 3]);
+    let ray4 = new Raycast(this.scene, this.x, this.y, null, 0, this, [14, 16], [9, 25]);
     this.playerRaycasts.addMultiple([ray1, ray2, ray3, ray4]);
   }
 
