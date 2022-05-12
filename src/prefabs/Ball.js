@@ -43,7 +43,7 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
 
   throw(){
     //this.angleSave = Phaser.Math.Angle.Between(this.x, this.y, game.input.mousePointer.x + this.cameras.main.scrollX,game.input.mousePointer.y + this.cameras.main.scrollY);
-    this.angleSave = Phaser.Math.Angle.Between(this.x, this.y, game.input.mousePointer.x,game.input.mousePointer.y);
+    this.angleSave = Phaser.Math.Angle.Between(this.x, this.y, game.input.mousePointer.worldX,game.input.mousePointer.worldY);
     console.log(this.angleSave);
     
     //North East
