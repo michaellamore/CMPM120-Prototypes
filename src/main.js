@@ -20,7 +20,7 @@ let config = {
       debug: false
     }
   },
-  scene: [Catch]
+  scene: [Menu, Catch]
 }
 
 let game = new Phaser.Game(config);

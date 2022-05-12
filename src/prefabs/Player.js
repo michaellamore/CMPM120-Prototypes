@@ -34,7 +34,6 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     this.accelBig = 800;
     this.dragXBig = 900;
     this.dragYBig = 1300;
-
     this.setMaxVelocity(this.velXBig, this.velYBig);
 
     this.currentColor = "purple";
@@ -137,7 +136,8 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   }
 
   BUSY(){
-    
+    // When busy, player literally shouldn't be able to do anything
+    // To get out of busy state, it has to be externally (after tween completion, animation finsihed, etc. etc.)
   }
 
   transitionTo(state){
@@ -148,12 +148,6 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     } else {
       console.error(`State "${state}" is not valid`);
     }
-  }
-
-  teleport(x, y){
-    this.body.setVelocityY(this.velJumpBig/3);
-    this.x = x;
-    this.y = y;
   }
 
   addRaycasts(){

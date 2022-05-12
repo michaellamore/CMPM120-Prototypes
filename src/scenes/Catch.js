@@ -56,7 +56,6 @@ class Catch extends Phaser.Scene{
     // Player
     this.playerGroup = this.add.group({maxSize: 2, runChildUpdate: true});
     this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0);
-    this.player.alpha = 1;
     this.playerGroup.add(this.player);
     this.playerManager = new PlayerManager(this);
     this.playerManager.refreshPlayers();
@@ -86,15 +85,24 @@ class Catch extends Phaser.Scene{
 
     // Load custom tiles that use JS prefabs from Tiled
     this.loadSpecialTiles();
+    
+    // Mouse inputs
+    this.input.mouse.disableContextMenu();
+    this.input.on('pointerdown', (pointer)=>{
+      if(pointer.rightButtonDown()){
+        if(this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer();
+      } 
+      else if(pointer.leftButtonDown()){
+        if(this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
+        else if(!this.playerGroup.isFull()) this.playerManager.throwRedCharacter();
+      }
+    })
   }
 
   update(){
     // Camera and spawn points will automatically change based on player position
     if(this.cameraInPosition) this.updateCamera();
-    // this.updateSpawnpoint();
-    if(Phaser.Input.Keyboard.JustDown(cursors.up) && !this.playerGroup.isFull()) this.playerManager.throwRedCharacter();
-    if(Phaser.Input.Keyboard.JustDown(cursors.right) && this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
-    if(Phaser.Input.Keyboard.JustDown(cursors.down) && this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer();
+    this.updateSpawnpoint();
   }
 
   getLocationOnGrid(obj){
@@ -104,8 +112,8 @@ class Catch extends Phaser.Scene{
   }
 
   updateCamera(){
-    let gridLocation = this.getLocationOnGrid(this.cameraTarget);
-    let target = new Phaser.Math.Vector2(gridLocation.x * width, gridLocation.y * height);
+    let playerGridPos = this.getLocationOnGrid(this.cameraTarget);
+    let target = new Phaser.Math.Vector2(playerGridPos.x * width, playerGridPos.y * height);
     this.cameraInPosition = false;
     let tween = this.tweens.add({
       targets: this.cameras.main,
@@ -130,23 +138,12 @@ class Catch extends Phaser.Scene{
     });
   }
 
-  collideWithKillArea(player, tile){
-    if(this.killArea.culledTiles.includes(tile)){
-      if(player.isBall) { // If the ball hit the kill area, just make the player get it back
-        this.player.retrieveBall(); 
-      } else if (player.isBall == null){ // If player hit the kill area, go back to spawn. If ball was out, take it too
-        if(this.playerGroup.isFull()) this.player.retrieveBall();
-        this.player.teleport(this.currentSpawn.x, this.currentSpawn.y);
-      }
-    }
-  }
-
-  // When creating levels in Tiled, create the buttons first THEN the door. This code stops working if you do it the other way around
+  // When creating levels in Tiled, make sure the LEVELS and ID of buttons/doors are correct! Or else everything falls to shit :)
   loadSpecialTiles(){
     let interactables = this.levelJSON.layers[1].objects;
     let availableDoors = ["blueDoor", "redDoor", "purpleDoor"];
     let availableButtons = ["blueButton", "redButton", "purpleButton"];
-    let offset = new Phaser.Math.Vector2(0, -8); // Not sure why I even need an offset, but it doesn't work without it..
+    let offset = new Phaser.Math.Vector2(0, -8); // Not sure why I even need an offset, Tiled is wild
 
     for(const obj of interactables){
       let currentObj;
