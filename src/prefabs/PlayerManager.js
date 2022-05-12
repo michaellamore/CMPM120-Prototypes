@@ -47,10 +47,11 @@ class PlayerManager {
 
     // add red player
     let redPlayer = new Player(this.scene, this.activePlayer.x, this.activePlayer.y, 'player', 0);
+    redPlayer.state = "THROWN";
     redPlayer.isActive = false;
     redPlayer.currentColor = 'red';
     this.scene.playerGroup.add(redPlayer);
-
+    this.addVelocity(redPlayer);
     // change purple to blue
     this.activePlayer.currentColor = "blue";
   }
@@ -70,16 +71,28 @@ class PlayerManager {
     })
   }
 
-  getInput(){
-    // Should be 8 directions, plus no input = 9 possibilities
-    if(cursors.left.isDown && cursors.up.isDown) { return "upLeft" } 
-    else if(cursors.left.isDown && cursors.down.isDown) { return "downLeft" } 
-    else if(cursors.right.isDown && cursors.up.isDown) { return "upRight" } 
-    else if(cursors.right.isDown && cursors.down.isDown) { return "downRight" } 
-    else if(cursors.up.isDown) { return "up" } 
-    else if(cursors.down.isDown) { return "down" } 
-    else if(cursors.left.isDown) { return "left"} 
-    else if(cursors.right.isDown) { return "right";} 
-    else { return "none"; }
+  addVelocity(player){
+    this.angleSave = Phaser.Math.Angle.Between(player.x, player.y, game.input.mousePointer.worldX,game.input.mousePointer.worldY);
+
+    //North East
+    if(this.angleSave < 0 && this.angleSave > -1.57079632679) {
+      player.body.setVelocityX(Math.abs(Math.cos(this.angleSave)) * 500);
+      player.body.setVelocityY(-Math.abs(Math.sin(this.angleSave)) * 500);
+    }
+    //North West
+    if(this.angleSave > -3.14159265359 && this.angleSave < -1.57079632679) {
+      player.body.setVelocityX(-Math.abs(Math.cos(this.angleSave)) * 500);
+      player.body.setVelocityY(-Math.abs(Math.sin(this.angleSave)) * 500);
+    }
+    //South West
+    if(this.angleSave < 3.14159265359 && this.angleSave > 1.57079632679) {
+      player.body.setVelocityX(-Math.abs(Math.cos(this.angleSave)) * 500);
+      player.body.setVelocityY(Math.abs(Math.sin(this.angleSave)) * 500);
+    }
+    //South East
+    if(this.angleSave > 0 && this.angleSave < 1.57079632679) {
+      player.body.setVelocityX(Math.abs(Math.cos(this.angleSave)) * 500);
+      player.body.setVelocityY(Math.abs(Math.sin(this.angleSave)) * 500);
+    }
   }
 }

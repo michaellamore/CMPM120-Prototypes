@@ -137,8 +137,11 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   }
 
   THROWN(){
+    this.setBounce(0.5, 0.5);
+    this.body.setDragX(this.dragXBig);
     if(this.body.onFloor() || this.body.onWall()){
       this.setBounce(0, 0);
+      this.body.setAccelerationY(0);
       this.body.setAccelerationX(0);
       this.transitionTo("IDLE");
     }
