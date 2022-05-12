@@ -40,61 +40,90 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     // When initializing this object, check the last known input to get direction of throw
     this.currentAction = this.getInput();
   }
-  
+
   throw(){
-    if(this.currentAction == "upLeft") {
-      this.body.setAccelerationX(-this.acceleration);
-      this.body.setVelocityX(-this.velX);
-      this.body.setVelocityY(this.jumpVelocity);
-    } 
-    else if(this.currentAction == "downLeft") {
-      this.body.setAccelerationX(-this.acceleration);
-      this.body.setVelocityX(-this.velXBig);
-      this.body.setVelocityY(-this.jumpVelBig);
-      this.setMaxVelocity(this.velXBig, this.velYBig);
-      this.setBounce(0.7, 0.7);
-    } 
-    else if(this.currentAction == "upRight") {
-      this.body.setAccelerationX(this.acceleration*3);
-      this.body.setVelocityX(this.velX);
-      this.body.setVelocityY(this.jumpVelocity);
-    } 
-    else if(this.currentAction == "downRight") {
-      this.body.setAccelerationX(this.acceleration*3);
-      this.body.setVelocityX(this.velX*3);
-      this.body.setVelocityY(-this.jumpVelBig);
-      this.setMaxVelocity(this.velXBig, this.velYBig);
-      this.setBounce(0.7, 0.7);
-    } 
-    else if(this.currentAction == "up") {
-      this.body.setAccelerationX(0);
-      this.body.setVelocityY(this.jumpVelocity);
-    } 
-    else if(this.currentAction == "down") {
-      this.body.setAccelerationX(0);
-      this.body.setVelocityY(-this.jumpVelocity);
-    } 
-    else if(this.currentAction == "left") {
-      this.body.setAccelerationX(-this.acceleration*3);
-      this.body.setVelocityX(-this.velXBig);
-      this.body.setVelocityY(this.jumpVelocity/2);
-      this.setMaxVelocity(this.velXBig, this.velY)
-      this.setBounce(0.1, 0.1);
-      this.body.setDragX(this.dragBig);
-      
-    } 
-    else if(this.currentAction == "right") {
-      this.body.setAccelerationX(this.acceleration*3);
-      this.body.setVelocityX(this.velXBig);
-      this.body.setVelocityY(this.jumpVelocity/2);
-      this.setMaxVelocity(this.velXBig, this.velY)
-      this.setBounce(0.1, 0.1);
-      this.body.setDragX(this.dragBig);
-    } 
-    else {
-      // if current action is none or not accounted for, it's ok. don't change its vel or accel
+    //this.angleSave = Phaser.Math.Angle.Between(this.x, this.y, game.input.mousePointer.x + this.cameras.main.scrollX,game.input.mousePointer.y + this.cameras.main.scrollY);
+    this.angleSave = Phaser.Math.Angle.Between(this.x, this.y, game.input.mousePointer.x,game.input.mousePointer.y);
+    console.log(this.angleSave);
+    
+    //North East
+    if(this.angleSave < 0 && this.angleSave > -1.57079632679) {
+      this.body.setVelocityX(Math.abs(Math.cos(this.angleSave)) * 500);
+      this.body.setVelocityY(-Math.abs(Math.sin(this.angleSave)) * 500);
     }
+    //North West
+    if(this.angleSave > -3.14159265359 && this.angleSave < -1.57079632679) {
+      this.body.setVelocityX(-Math.abs(Math.cos(this.angleSave)) * 500);
+      this.body.setVelocityY(-Math.abs(Math.sin(this.angleSave)) * 500);
+    }
+    //South West
+    if(this.angleSave < 3.14159265359 && this.angleSave > 1.57079632679) {
+      this.body.setVelocityX(-Math.abs(Math.cos(this.angleSave)) * 500);
+      this.body.setVelocityY(Math.abs(Math.sin(this.angleSave)) * 500);
+    }
+    //South East
+    if(this.angleSave > 0 && this.angleSave < 1.57079632679) {
+      this.body.setVelocityX(Math.abs(Math.cos(this.angleSave)) * 500);
+      this.body.setVelocityY(Math.abs(Math.sin(this.angleSave)) * 500);
+    }
+
+    //debugger;
   }
+  
+  //throw(){
+  //  if(this.currentAction == "upLeft") {
+  //    this.body.setAccelerationX(-this.acceleration);
+  //    this.body.setVelocityX(-this.velX);
+  //    this.body.setVelocityY(this.jumpVelocity);
+  //  } 
+  //  else if(this.currentAction == "downLeft") {
+  //    this.body.setAccelerationX(-this.acceleration);
+  //    this.body.setVelocityX(-this.velXBig);
+  //    this.body.setVelocityY(-this.jumpVelBig);
+  //    this.setMaxVelocity(this.velXBig, this.velYBig);
+  //    this.setBounce(0.7, 0.7);
+  //  } 
+  //  else if(this.currentAction == "upRight") {
+  //    this.body.setAccelerationX(this.acceleration*3);
+  //    this.body.setVelocityX(this.velX);
+  //    this.body.setVelocityY(this.jumpVelocity);
+  //  } 
+  //  else if(this.currentAction == "downRight") {
+  //    this.body.setAccelerationX(this.acceleration*3);
+  //    this.body.setVelocityX(this.velX*3);
+  //    this.body.setVelocityY(-this.jumpVelBig);
+  //    this.setMaxVelocity(this.velXBig, this.velYBig);
+  //    this.setBounce(0.7, 0.7);
+  //  } 
+  //  else if(this.currentAction == "up") {
+  //    this.body.setAccelerationX(0);
+  //    this.body.setVelocityY(this.jumpVelocity);
+  //  } 
+  //  else if(this.currentAction == "down") {
+  //    this.body.setAccelerationX(0);
+  //    this.body.setVelocityY(-this.jumpVelocity);
+  //  } 
+  //  else if(this.currentAction == "left") {
+  //    this.body.setAccelerationX(-this.acceleration*3);
+  //    this.body.setVelocityX(-this.velXBig);
+  //    this.body.setVelocityY(this.jumpVelocity/2);
+  //    this.setMaxVelocity(this.velXBig, this.velY)
+  //    this.setBounce(0.1, 0.1);
+  //    this.body.setDragX(this.dragBig);
+  //    
+  //  } 
+  //  else if(this.currentAction == "right") {
+  //    this.body.setAccelerationX(this.acceleration*3);
+  //    this.body.setVelocityX(this.velXBig);
+  //    this.body.setVelocityY(this.jumpVelocity/2);
+  //    this.setMaxVelocity(this.velXBig, this.velY)
+  //    this.setBounce(0.1, 0.1);
+  //    this.body.setDragX(this.dragBig);
+  //  } 
+  //  else {
+  //    // if current action is none or not accounted for, it's ok. don't change its vel or accel
+  //  }
+  //}
 
   update(){
     // If it hits ANYTHING other than player, stop its movement
