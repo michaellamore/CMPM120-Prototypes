@@ -17,10 +17,10 @@ let config = {
     arcade: {
       gravity: {y: 0},
       tileBias: 8,
-      debug: true
+      debug: false
     }
   },
-  scene: [Catch]
+  scene: [Menu, Catch]
 }
 
 let game = new Phaser.Game(config);

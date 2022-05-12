@@ -1,4 +1,4 @@
-class Ball extends Phaser.Physics.Arcade.Sprite{
+class Ball extends Phaser.Physics.Arcade.Sprite{ // NO LONGER BEING USED, STILL HERE TO COPY PASTE THIS CODE LATER
   constructor(scene, x, y, texture, frame, player, ground){
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
@@ -7,9 +7,8 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     this.body.setSize(16, 16, false);
     this.body.setOffset(0, 3);
     this.setBounce(0.5, 0.5);
-    this.setTint(0x808080);
+    this.setTint(0xa53030);
     this.isBall = true;
-    this.scale = 0.5;
     
     // Variables to change the way the ball moves when thrown
     this.velX = 160;

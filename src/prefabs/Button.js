@@ -1,9 +1,10 @@
 class Button extends Obstacle{
-  constructor(scene, x, y, texture, frame, targets, id=0){
+  constructor(scene, x, y, texture, frame, color="", id=0, level=0){
     super(scene, x, y, texture, frame);
-    this.setOrigin(0, 0);
-    this.targets = targets;
+    this.color = color;
     this.id = id;
+    this.level = level;
+    this.isPressed = false;
   }
 
   update(){
@@ -11,7 +12,7 @@ class Button extends Obstacle{
     this.isPressed = false;
   }
 
-  isColliding(){
+  isOverlapping(){
     this.isPressed = true;
     this.body.debugBodyColor = 0x468232;
   }
