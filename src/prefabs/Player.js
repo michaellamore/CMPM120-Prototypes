@@ -63,8 +63,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
       this.teleport(this.scene.currentSpawn.x, this.scene.currentSpawn.y);
     };
     // If arrow key is used, throw ball or teleport to it
-    if (Phaser.Input.Keyboard.JustDown(cursors.left) || Phaser.Input.Keyboard.JustDown(cursors.right) || 
-    Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(cursors.down)){   
+    if (game.input.mousePointer.isDown){   
       if(!this.group.isFull() && this.canThrow){
         this.throwBall();
       } else if (this.group.isFull() && this.canTeleport){
