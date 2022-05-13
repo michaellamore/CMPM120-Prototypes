@@ -25,7 +25,7 @@ class Catch extends Phaser.Scene{
     // Variables and such
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
-    this.currentSpawn = new Phaser.Math.Vector2(1248, 336); // Change this to X and Y of level you want to test
+    this.currentSpawn = new Phaser.Math.Vector2(32, 128); // Change this to X and Y of level you want to test
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
     this.resetPanels = this.add.group();
