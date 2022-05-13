@@ -25,14 +25,13 @@ class Catch extends Phaser.Scene{
     // Variables and such
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
-    this.currentSpawn = new Phaser.Math.Vector2(32, 128); // Change this to X and Y of level you want to test
+    this.currentSpawn = new Phaser.Math.Vector2(1248, 336); // Change this to X and Y of level you want to test
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
     this.resetPanels = this.add.group();
     this.spawnPoints = this.add.group();  
 
     // Input
-    cursors = this.input.keyboard.createCursorKeys();
     keyReset = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
     keyAction = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -67,20 +66,20 @@ class Catch extends Phaser.Scene{
       if(player.currentColor == button.color || player.currentColor == "purple") button.isOverlapping();
     })
 
-    this.physics.add.overlap(this.playerGroup, this.killArea, (player, panel)=>{
-      if(this.killArea.culledTiles.includes(panel)){
+    this.physics.add.overlap(this.playerGroup, this.killArea, (player, spike)=>{
+      if(this.killArea.culledTiles.includes(spike)){
         if(player.currentColor == "purple"){
           this.playerManager.teleport(player, this.currentSpawn.x, this.currentSpawn.y);
         } else {
           if(player.isActive) this.playerManager.changeActivePlayer();
-          this.playerManager.retrieveInactivePlayer();
+          this.playerManager.retrieveInactivePlayer(true);
         }
       }
     });
     this.physics.add.overlap(this.playerGroup, this.resetPanels, (player, panel)=>{
       if(player.currentColor == "purple") return;
       if(player.isActive) this.playerManager.changeActivePlayer();
-      this.playerManager.retrieveInactivePlayer();
+      this.playerManager.retrieveInactivePlayer(true);
     })
 
     // Load custom tiles that use JS prefabs from Tiled
@@ -103,6 +102,12 @@ class Catch extends Phaser.Scene{
     // Camera and spawn points will automatically change based on player position
     if(this.cameraInPosition) this.updateCamera();
     this.updateSpawnpoint();
+    this.playerManager.updateLine();
+
+    if(Phaser.Input.Keyboard.JustDown(keyReset)){
+      if(this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer(true);
+      this.playerManager.teleport(this.playerManager.activePlayer, this.currentSpawn.x, this.currentSpawn.y);
+    }
   }
 
   getLocationOnGrid(obj){
@@ -113,7 +118,7 @@ class Catch extends Phaser.Scene{
 
   updateCamera(){
     let playerGridPos = this.getLocationOnGrid(this.cameraTarget);
-    let target = new Phaser.Math.Vector2(playerGridPos.x * width, playerGridPos.y * height);
+    let target = new Phaser.Math.Vector2(playerGridPos.x*width, playerGridPos.y*height + (4*playerGridPos.y));
     this.cameraInPosition = false;
     let tween = this.tweens.add({
       targets: this.cameras.main,

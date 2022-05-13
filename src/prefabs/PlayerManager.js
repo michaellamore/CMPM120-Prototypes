@@ -4,13 +4,25 @@ class PlayerManager {
     this.activePlayer = null;
     this.inactivePlayer = null;
     this.canSwap = true;
+    this.swapDistance = 100;
+
+    // How do you change the color of the line????? Hexcode doesn't work
+    this.playerLine = this.scene.add.line(0, 0, 0, 0, 0, 0, "#468232");
   }
 
-  retrieveInactivePlayer(){
+  retrieveInactivePlayer(bypass=false){
+    this.refreshPlayers();
     if(!this.canSwap) return;
+    // If players are too far away, you can't merge back together
+    if(!bypass){ // if bypass is true, you can merge players from any distance (useful for resetPanel collision);
+      let distance = Phaser.Math.Distance.BetweenPoints(this.activePlayer, this.inactivePlayer);
+      if(distance > this.swapDistance) return;
+    }
+    
     this.canSwap = false;
     let duration = 300;
-    this.refreshPlayers();
+    
+    this.playerLine.alpha = 0;
     this.tween = this.scene.tweens.add({
       targets: this.inactivePlayer,
       x: this.activePlayer.x,
@@ -52,7 +64,7 @@ class PlayerManager {
     redPlayer.currentColor = 'red';
     this.scene.playerGroup.add(redPlayer);
     this.addVelocity(redPlayer);
-    // change purple to blue
+    // change active character from purple to blue
     this.activePlayer.currentColor = "blue";
   }
 
@@ -93,6 +105,18 @@ class PlayerManager {
     if(this.angleSave > 0 && this.angleSave < 1.57079632679) {
       player.body.setVelocityX(Math.abs(Math.cos(this.angleSave)) * 500);
       player.body.setVelocityY(Math.abs(Math.sin(this.angleSave)) * 500);
+    }
+  }
+
+  updateLine(){
+    this.refreshPlayers();
+    // Disappear if there's only 1 player, too far away, or if getting teleported
+    if(!this.scene.playerGroup.isFull() || !this.canSwap ||
+      Phaser.Math.Distance.BetweenPoints(this.activePlayer, this.inactivePlayer) > this.swapDistance){
+      return this.playerLine.alpha = 0;
+    } else {
+      this.playerLine.setTo(this.activePlayer.x, this.activePlayer.y, this.inactivePlayer.x, this.inactivePlayer.y);
+      this.playerLine.alpha = 1;
     }
   }
 }

@@ -1,4 +1,4 @@
-class ResetPanel extends Obstacle{
+class ResetPanel extends ImmovableBody{
   constructor(scene, x, y, texture, frame){
     super(scene, x, y, texture, frame);
     this.scene = scene;

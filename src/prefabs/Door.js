@@ -1,4 +1,4 @@
-class Door extends Obstacle{
+class Door extends ImmovableBody{
   constructor(scene, x, y, texture, frame, color="", id=0, level=0, startsOpen){
     super(scene, x, y, texture, frame);
     this.scene = scene;

@@ -1,4 +1,4 @@
-class Spawn extends Obstacle{
+class Spawn extends ImmovableBody{
   constructor(scene, x, y, texture, frame){
     super(scene, x, y, texture, frame);
     this.body.setSize(4, 4, false);
