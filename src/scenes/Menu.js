@@ -6,6 +6,7 @@ class Menu extends Phaser.Scene {
   preload(){
     this.load.path = './assets/'
     this.load.spritesheet('menuPlay', 'menuPlay.png', {frameWidth: 160, frameHeight: 80});
+    this.load.audio('split', 'split.wav');
   }
 
   create() {
@@ -25,6 +26,7 @@ class Menu extends Phaser.Scene {
     })
     this.playButton.on("pointerup", () => {
       this.playButton.anims.play('pressedPlay');
+      this.sound.play('split');
       this.transitionToPlay();
     })
   }

@@ -57,6 +57,7 @@ class PlayerManager {
     this.refreshPlayers();
     if(!this.canSwap) return;
 
+    this.scene.sound.play('split');
     // add red player
     let redPlayer = new Player(this.scene, this.activePlayer.x, this.activePlayer.y, 'player', 0);
     redPlayer.state = "THROWN";
