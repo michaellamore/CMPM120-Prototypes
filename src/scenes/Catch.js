@@ -14,6 +14,7 @@ class Catch extends Phaser.Scene{
     this.load.image('redButton', 'redButton.png');
     this.load.image('redDoor', 'redDoor.png');
     this.load.image('resetPanel', 'resetPanel.png');
+    this.load.image('ballRed', 'ballRed.png');
 
     // Test level
     this.load.image('tiles', "tiles.png");
@@ -26,6 +27,7 @@ class Catch extends Phaser.Scene{
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
     this.currentSpawn = new Phaser.Math.Vector2(32, 128); // Change this to X and Y of level you want to test
+    this.ballGroup = this.add.group({runChildUpdate: true})
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
     this.resetPanels = this.add.group();
@@ -40,7 +42,7 @@ class Catch extends Phaser.Scene{
     keyDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
 
     // Camera + flags
-    this.cameras.main.setBackgroundColor('#577277');
+    this.cameras.main.setBackgroundColor('#636363');
     this.cameraInPosition = true;
     this.cameraTarget;
     
@@ -59,7 +61,7 @@ class Catch extends Phaser.Scene{
     this.playerManager = new PlayerManager(this);
     this.playerManager.refreshPlayers();
 
-    // Collision stuff
+    // Player collisions
     this.physics.add.collider(this.playerGroup, this.ground);
     this.physics.add.collider(this.playerGroup, this.doorGroup);
     this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=>{
@@ -82,6 +84,30 @@ class Catch extends Phaser.Scene{
       this.playerManager.retrieveInactivePlayer(true);
     })
 
+    // Ball collisions
+    this.physics.add.collider(this.ballGroup, this.ground, (ball, tile)=>{
+      
+      if(tile.properties.validSpawn != null){ // If it's a valid spawn tile, spawn a character;
+        this.playerManager.spawnRedCharacter(ball.x, ball.y);
+        this.playerManager.activePlayer.currentColor = "blue";
+        this.playerManager.canSwap = true;
+        ball.destroy();
+      }
+      else if (tile.properties.validSpawn == null){ // If it's not valid
+        ball.body.setAccelerationX(this.acceleration*3);
+        ball.body.setVelocityX(this.velXBig);
+        if(ball.body.blocked.down){ // Only pop when it hits the floor
+          this.playerManager.canSwap = true;
+          ball.destroy();
+        }
+      }
+    });
+    this.physics.add.collider(this.ballGroup, this.doorGroup, (ball, door)=>{
+      this.playerManager.canSwap = true;
+      ball.destroy();
+    });
+    
+
     // Load custom tiles that use JS prefabs from Tiled
     this.loadSpecialTiles();
     
@@ -93,7 +119,7 @@ class Catch extends Phaser.Scene{
       } 
       else if(pointer.leftButtonDown()){
         if(this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
-        else if(!this.playerGroup.isFull()) this.playerManager.throwRedCharacter();
+        else if(!this.playerGroup.isFull()) this.playerManager.throwBall();
       }
     })
   }

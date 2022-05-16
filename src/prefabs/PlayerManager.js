@@ -41,6 +41,7 @@ class PlayerManager {
   teleport(target, x, y){
     this.canSwap = false;
     let duration = 300;
+    target.body.setEnable(false);
     this.tween = this.scene.tweens.add({
       targets: target,
       x: x,
@@ -50,23 +51,16 @@ class PlayerManager {
     })
     this.tween.on('complete', ()=>{
       this.canSwap = true;
+      target.body.setEnable(true);
     })
   }
 
-  throwRedCharacter(){
-    this.refreshPlayers();
-    if(!this.canSwap) return;
-
-    this.scene.sound.play('split');
+  spawnRedCharacter(x, y){
     // add red player
-    let redPlayer = new Player(this.scene, this.activePlayer.x, this.activePlayer.y, 'player', 0);
-    redPlayer.state = "THROWN";
+    let redPlayer = new Player(this.scene, x, y, 'player', 0);
     redPlayer.isActive = false;
     redPlayer.currentColor = 'red';
     this.scene.playerGroup.add(redPlayer);
-    this.addVelocity(redPlayer);
-    // change active character from purple to blue
-    this.activePlayer.currentColor = "blue";
   }
 
   changeActivePlayer(){
@@ -84,29 +78,36 @@ class PlayerManager {
     })
   }
 
-  addVelocity(player){
-    this.angleSave = Phaser.Math.Angle.Between(player.x, player.y, game.input.mousePointer.worldX,game.input.mousePointer.worldY);
+  throwBall(){
+    this.refreshPlayers();
+    if(!this.canSwap) return;
 
-    //North East
-    if(this.angleSave < 0 && this.angleSave > -1.57079632679) {
-      player.body.setVelocityX(Math.abs(Math.cos(this.angleSave)) * 500);
-      player.body.setVelocityY(-Math.abs(Math.sin(this.angleSave)) * 500);
-    }
-    //North West
-    if(this.angleSave > -3.14159265359 && this.angleSave < -1.57079632679) {
-      player.body.setVelocityX(-Math.abs(Math.cos(this.angleSave)) * 500);
-      player.body.setVelocityY(-Math.abs(Math.sin(this.angleSave)) * 500);
-    }
-    //South West
-    if(this.angleSave < 3.14159265359 && this.angleSave > 1.57079632679) {
-      player.body.setVelocityX(-Math.abs(Math.cos(this.angleSave)) * 500);
-      player.body.setVelocityY(Math.abs(Math.sin(this.angleSave)) * 500);
-    }
-    //South East
-    if(this.angleSave > 0 && this.angleSave < 1.57079632679) {
-      player.body.setVelocityX(Math.abs(Math.cos(this.angleSave)) * 500);
-      player.body.setVelocityY(Math.abs(Math.sin(this.angleSave)) * 500);
-    }
+    this.scene.sound.play('split');
+    this.canSwap = false;
+    let rad = Phaser.Math.Angle.Between(this.activePlayer.x, this.activePlayer.y, game.input.mousePointer.worldX,game.input.mousePointer.worldY);
+    rad = Phaser.Math.Angle.Normalize(rad); // change the rad interval from [-PI, PI] to [0, 2PI]
+    let angle = Math.floor(Phaser.Math.RadToDeg(rad)); // convert rad to angle
+    new Ball(this.scene, this.activePlayer.x, this.activePlayer.y, "ballRed", 0, angle); // Automatically thrown after initializing
+    // //North East
+    // if(this.angleSave < 0 && this.angleSave > -1.57079632679) {
+    //   player.body.setVelocityX(Math.abs(Math.cos(this.angleSave)) * 500);
+    //   player.body.setVelocityY(-Math.abs(Math.sin(this.angleSave)) * 500);
+    // }
+    // //North West
+    // if(this.angleSave > -3.14159265359 && this.angleSave < -1.57079632679) {
+    //   player.body.setVelocityX(-Math.abs(Math.cos(this.angleSave)) * 500);
+    //   player.body.setVelocityY(-Math.abs(Math.sin(this.angleSave)) * 500);
+    // }
+    // //South West
+    // if(this.angleSave < 3.14159265359 && this.angleSave > 1.57079632679) {
+    //   player.body.setVelocityX(-Math.abs(Math.cos(this.angleSave)) * 500);
+    //   player.body.setVelocityY(Math.abs(Math.sin(this.angleSave)) * 500);
+    // }
+    // //South East
+    // if(this.angleSave > 0 && this.angleSave < 1.57079632679) {
+    //   player.body.setVelocityX(Math.abs(Math.cos(this.angleSave)) * 500);
+    //   player.body.setVelocityY(Math.abs(Math.sin(this.angleSave)) * 500);
+    // }
   }
 
   updateLine(){
