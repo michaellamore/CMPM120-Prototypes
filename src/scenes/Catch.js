@@ -5,8 +5,19 @@ class Catch extends Phaser.Scene{
 
   preload(){
     this.load.path = "./assets/";
+
+    // Player
     this.load.image('player', 'testPlayer.png');
     this.load.image('playerInactive', 'testPlayerInactive.png');
+    this.load.image('bluePlayer', 'playerBlue.png');
+    this.load.image('redPlayer', 'playerRed.png');
+    this.load.image('purplePlayer', 'playerPurple.png');
+    this.load.image('bluePlayerInactive', 'playerBlueInactive.png');
+    this.load.image('redPlayerInactive', 'playerRedInactive.png');
+    this.load.image('purplePlayerInactive', 'playerPurpleInactive.png');
+    this.load.image('ballRed', 'ballRed.png');
+
+    // Buttons, doors, and other objects
     this.load.image('purpleButton', 'purpleButton.png');
     this.load.image('purpleDoor', 'purpleDoor.png');
     this.load.image('blueButton', 'blueButton.png');
@@ -14,19 +25,20 @@ class Catch extends Phaser.Scene{
     this.load.image('redButton', 'redButton.png');
     this.load.image('redDoor', 'redDoor.png');
     this.load.image('resetPanel', 'resetPanel.png');
-    this.load.image('ballRed', 'ballRed.png');
+    
 
-    // Test level
-    this.load.image('tiles', "tiles.png");
-    this.load.tilemapTiledJSON('tilemap', 'levels.json');
-    this.load.json('levelJSON', 'levels.json')
+    // Tileset things
+    this.load.image('paintBG', 'paint.png');
+    this.load.image('tiles', "tileset2.png");
+    this.load.tilemapTiledJSON('tilemap', 'newLevels.json');
+    this.load.json('levelJSON', 'newLevels.json')
   }
 
   create(){
     // Variables and such
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
-    this.currentSpawn = new Phaser.Math.Vector2(32, 128); // Change this to X and Y of level you want to test
+    this.currentSpawn = new Phaser.Math.Vector2(32, 300); // Change this to X and Y of level you want to test
     this.ballGroup = this.add.group({runChildUpdate: true})
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
@@ -42,21 +54,30 @@ class Catch extends Phaser.Scene{
     keyDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
 
     // Camera + flags
-    this.cameras.main.setBackgroundColor('#636363');
+    this.cameras.main.setBackgroundColor('#a8b5b2');
     this.cameraInPosition = true;
     this.cameraTarget;
+
+    // Lights :)
+    this.lights.enable();
+    this.lights.setAmbientColor(0xc4c4c4);
     
     // Tileset stuff
     const map = this.make.tilemap({key: "tilemap", tileWidth: 8, tileHeight: 8});
-    const tileset = map.addTilesetImage("tilesetNew", 'tiles', 8, 8, 0, 0);
+    const tileset = map.addTilesetImage("tileset", 'tiles', 8, 8, 0, 0);
+    this.add.rectangle(0, 0, 2000, 2000, 0xa8b5b2); // Main BG color
+    this.background = map.createLayer('bg', tileset, 0, 0); // BG tiles
+    this.add.image(0, 0, 'paintBG').setOrigin(0); // Paint background on top of the BG tiles
     this.ground = map.createLayer('ground', tileset, 0, 0);
+    this.ground.setPipeline('Light2D');
     this.ground.setCollisionByProperty({collides: true});
     this.killArea = map.createLayer('killArea', tileset, 0, 0);
     this.killArea.setCollisionByProperty({kills: true});
+
     
     // Player
     this.playerGroup = this.add.group({maxSize: 2, runChildUpdate: true});
-    this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0);
+    this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0, 'purple');
     this.playerGroup.add(this.player);
     this.playerManager = new PlayerManager(this);
     this.playerManager.refreshPlayers();
@@ -66,7 +87,7 @@ class Catch extends Phaser.Scene{
     this.physics.add.collider(this.playerGroup, this.doorGroup);
     this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=>{
       if(player.currentColor == button.color || player.currentColor == "purple") button.isOverlapping();
-    })
+    });
 
     this.physics.add.overlap(this.playerGroup, this.killArea, (player, spike)=>{
       if(this.killArea.culledTiles.includes(spike)){
@@ -82,11 +103,10 @@ class Catch extends Phaser.Scene{
       if(player.currentColor == "purple") return;
       if(player.isActive) this.playerManager.changeActivePlayer();
       this.playerManager.retrieveInactivePlayer(true);
-    })
+    });
 
     // Ball collisions
     this.physics.add.collider(this.ballGroup, this.ground, (ball, tile)=>{
-      
       if(tile.properties.validSpawn != null){ // If it's a valid spawn tile, spawn a character;
         this.playerManager.spawnRedCharacter(ball.x, ball.y);
         this.playerManager.activePlayer.currentColor = "blue";
@@ -171,7 +191,7 @@ class Catch extends Phaser.Scene{
 
   // When creating levels in Tiled, make sure the LEVELS and ID of buttons/doors are correct! Or else everything falls to shit :)
   loadSpecialTiles(){
-    let interactables = this.levelJSON.layers[1].objects;
+    let interactables = this.levelJSON.layers[2].objects;
     let availableDoors = ["blueDoor", "redDoor", "purpleDoor"];
     let availableButtons = ["blueButton", "redButton", "purpleButton"];
     let offset = new Phaser.Math.Vector2(0, -8); // Not sure why I even need an offset, Tiled is wild
@@ -204,7 +224,7 @@ class Catch extends Phaser.Scene{
         else if (currentObj == "redButton") color = "red";
         else if (currentObj == "purpleButton") color = "purple";
         else console.warn(`Button "${currentObj}" is invalid.`);
-        let button = new Button(this, obj.x+offset.x, obj.y+offset.y, currentObj, 0, color, currentId, currentLevel);
+        let button = new Button(this, obj.x+offset.x, obj.y+offset.y, 'buttonSheet', 0, color, currentId, currentLevel);
         this.buttonGroup.add(button);
       }
 
@@ -214,7 +234,7 @@ class Catch extends Phaser.Scene{
         else if (currentObj == "redDoor") color = "red";
         else if (currentObj == "purpleDoor") color = "purple";
         else console.warn(`Door "${currentObj}" is invalid.`);
-        let door = new Door(this, obj.x+offset.x, obj.y+offset.y, currentObj, 0, color, currentId, currentLevel, startOpen);
+        let door = new Door(this, obj.x+offset.x, obj.y+offset.y, "blueDoorIdle", 0, color, currentId, currentLevel, startOpen);
         this.doorGroup.add(door);
       }
 
@@ -229,6 +249,9 @@ class Catch extends Phaser.Scene{
       }
     }
     // Now do stuff that requires everything to be loaded to work properly
-    Phaser.Actions.Call(this.doorGroup.getChildren(), (door)=>{ door.getTargets() })
+    Phaser.Actions.Call(this.doorGroup.getChildren(), (door)=>{ 
+      door.getTargets();
+      if(door.startsOpen) door.open();
+    });
   } 
 }

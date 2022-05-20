@@ -1,12 +1,12 @@
 class Player extends Phaser.Physics.Arcade.Sprite{
-  constructor(scene, x, y, texture, frame){
+  constructor(scene, x, y, texture, frame, color){
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0.5);
     this.setDepth(1);
     this.body.setSize(16, 16, false);
-    this.body.setOffset(0, 3);
+    this.body.setOffset(16, 16);
     this.body.debugBodyColor = 0x468232;
 
     // Reference to stuff from the scene
@@ -36,27 +36,31 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     this.dragYBig = 1300;
     this.setMaxVelocity(this.velXBig, this.velYBig);
 
-    this.currentColor = "purple";
-    if(this.currentColor == "red") this.setTint(0xa53030);
-    if(this.currentColor == "blue") this.setTint(0x4f8fba);
-    if(this.currentColor == "purple") this.setTint(0xa23e8c);
+    // Misc
+    this.currentColor = color;
+    this.setTexture(`${this.currentColor}PlayerInactive`);
+    this.setTint(0x402751);
 
     this.state = "IDLE";
     this.availableStates = ["IDLE", "MOVE", "JUMP", "WALLJUMP", "BUSY", "THROWN"];
+
+    this.setPipeline('Light2D');
+    this.lightOffset = new Phaser.Math.Vector2(4, -16);
+    this.spotlight = this.scene.lights.addLight(this.x + this.lightOffset.x, this.y + this.lightOffset.y, 64).setIntensity(0.5);
   }
   
   update(){
+    this.spotlight.setPosition(this.x + this.lightOffset.x, this.y + this.lightOffset.y);
     // Change player tint depending on what player is and if they're active
-    if(this.currentColor == "red") this.setTint(0xa53030);
-    if(this.currentColor == "blue") this.setTint(0x4f8fba);
-    if(this.currentColor == "purple") this.setTint(0xa23e8c);
     if(!this.isActive){
       this.body.setAccelerationX(0);
       this.body.setDragX(this.dragXBig);
-      this.setTexture('playerInactive');
+      this.setTexture(`${this.currentColor}PlayerInactive`);
+      this.setTint(0x757575);
       return;
     } 
-    this.setTexture('player');
+    this.setTexture(`${this.currentColor}Player`);
+    this.clearTint();
 
     let raycast = this.checkRaycasts();
     if(this.state == "BUSY") this.BUSY();
@@ -175,6 +179,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   }
 
   customDestroy(){
+    this.scene.lights.removeLight(this.spotlight);
     let raycast = this.playerRaycasts.getChildren();
     raycast[3].destroy();
     raycast[2].destroy();

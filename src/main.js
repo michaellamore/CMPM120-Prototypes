@@ -1,10 +1,10 @@
 'use strict';
 
 let config = {
-  type: Phaser.AUTO,
+  type: Phaser.WEBGL,
   // This width/height makes it easier to scale up to 720p or 1080p
-  width: 320,
-  height: 180,
+  width: 640,
+  height: 360,
   parent: "phaser-canvas",
   pixelArt: true,
   zoom: 2,
@@ -29,3 +29,9 @@ let keyLeft, keyRight, keyUp, keyDown, keyAction, keyReset;
 const width = config.width;
 const height = config.height;
 const padding = 30;
+
+const tints = {
+  red: 0x9a4e6c,
+  blue: 0x4f8fba,
+  purple: 0x7a367b
+}

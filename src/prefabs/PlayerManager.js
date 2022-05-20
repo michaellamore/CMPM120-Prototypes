@@ -57,7 +57,7 @@ class PlayerManager {
 
   spawnRedCharacter(x, y){
     // add red player
-    let redPlayer = new Player(this.scene, x, y, 'player', 0);
+    let redPlayer = new Player(this.scene, x, y, 'player', 0, 'red');
     redPlayer.isActive = false;
     redPlayer.currentColor = 'red';
     this.scene.playerGroup.add(redPlayer);
@@ -81,7 +81,6 @@ class PlayerManager {
   throwBall(){
     this.refreshPlayers();
     if(!this.canSwap) return;
-
     this.scene.sound.play('split');
     this.canSwap = false;
     let rad = Phaser.Math.Angle.Between(this.activePlayer.x, this.activePlayer.y, game.input.mousePointer.worldX,game.input.mousePointer.worldY);

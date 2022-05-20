@@ -4,7 +4,6 @@ class ImmovableBody extends Phaser.Physics.Arcade.Sprite{
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0);
-
     this.body.immovable = true;
     this.body.allowGravity = false;
   }

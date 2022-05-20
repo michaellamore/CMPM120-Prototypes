@@ -5,7 +5,7 @@ class Ball extends Phaser.Physics.Arcade.Sprite{
     scene.physics.add.existing(this);
     this.setOrigin(0.5);
     this.setBounce(0.5, 0.5);
-    this.setTint(0xa53030);
+    this.setPipeline('Light2D');
     this.scene = scene;
     
     // Variables to change the way the ball moves when thrown
