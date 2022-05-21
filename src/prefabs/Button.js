@@ -7,7 +7,7 @@ class Button extends ImmovableBody{
     this.color = color;
     this.id = id;
     this.level = level;
-    this.playerOverlap = false; // flag for when a valid player is in the overlap
+    this.validPlayer = null;
 
     let randInt = Phaser.Math.Between(0, 4);
     this.setFrame(`${this.color}${randInt}`);
@@ -17,11 +17,16 @@ class Button extends ImmovableBody{
 
   update(){
     this.body.debugBodyColor = 0xa53030;
-    this.playerOverlap = false;
+    if(this.validPlayer == null) return;
+    let touching = !this.validPlayer.body.touching.none;
+    let wasTouching = !this.validPlayer.body.wasTouching.none;
+    if (!touching && wasTouching){ // Exit button range
+      this.validPlayer = null;
+    }
   }
 
-  isOverlapping(){
-    this.playerOverlap = true;
+  isOverlapping(player){
+    this.validPlayer = player;
     this.body.debugBodyColor = 0x468232;
   }
 }

@@ -7,29 +7,19 @@ class Catch extends Phaser.Scene{
     this.load.path = "./assets/";
 
     // Player
-    this.load.image('player', 'testPlayer.png');
-    this.load.image('playerInactive', 'testPlayerInactive.png');
     this.load.image('bluePlayer', 'playerBlue.png');
     this.load.image('redPlayer', 'playerRed.png');
     this.load.image('purplePlayer', 'playerPurple.png');
     this.load.image('bluePlayerInactive', 'playerBlueInactive.png');
     this.load.image('redPlayerInactive', 'playerRedInactive.png');
     this.load.image('purplePlayerInactive', 'playerPurpleInactive.png');
-    this.load.image('ballRed', 'ballRed.png');
 
     // Buttons, doors, and other objects
-    this.load.image('purpleButton', 'purpleButton.png');
-    this.load.image('purpleDoor', 'purpleDoor.png');
-    this.load.image('blueButton', 'blueButton.png');
-    this.load.image('blueDoor', 'blueDoor.png');
-    this.load.image('redButton', 'redButton.png');
-    this.load.image('redDoor', 'redDoor.png');
     this.load.image('resetPanel', 'resetPanel.png');
     
-
     // Tileset things
     this.load.image('paintBG', 'paint.png');
-    this.load.image('tiles', "tileset2.png");
+    this.load.image('tiles', "tiles.png");
     this.load.tilemapTiledJSON('tilemap', 'newLevels.json');
     this.load.json('levelJSON', 'newLevels.json')
   }
@@ -39,19 +29,18 @@ class Catch extends Phaser.Scene{
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
     this.currentSpawn = new Phaser.Math.Vector2(32, 300); // Change this to X and Y of level you want to test
-    this.ballGroup = this.add.group({runChildUpdate: true})
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
     this.resetPanels = this.add.group();
     this.spawnPoints = this.add.group();  
 
     // Input
-    keyReset = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
-    keyAction = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
     keyRight = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-    keyUp = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-    keyDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+    keyJump = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    keySwap = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
+    keySplit = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+    keyReset = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
     // Camera + flags
     this.cameras.main.setBackgroundColor('#a8b5b2');
@@ -59,7 +48,7 @@ class Catch extends Phaser.Scene{
     this.cameraTarget;
 
     // Lights :)
-    this.lights.enable();
+    // this.lights.enable();
     this.lights.setAmbientColor(0xc4c4c4);
     
     // Tileset stuff
@@ -69,7 +58,7 @@ class Catch extends Phaser.Scene{
     this.background = map.createLayer('bg', tileset, 0, 0); // BG tiles
     this.add.image(0, 0, 'paintBG').setOrigin(0); // Paint background on top of the BG tiles
     this.ground = map.createLayer('ground', tileset, 0, 0);
-    this.ground.setPipeline('Light2D');
+    // this.ground.setPipeline('Light2D');
     this.ground.setCollisionByProperty({collides: true});
     this.killArea = map.createLayer('killArea', tileset, 0, 0);
     this.killArea.setCollisionByProperty({kills: true});
@@ -86,7 +75,7 @@ class Catch extends Phaser.Scene{
     this.physics.add.collider(this.playerGroup, this.ground);
     this.physics.add.collider(this.playerGroup, this.doorGroup);
     this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=>{
-      if(player.currentColor == button.color || player.currentColor == "purple") button.isOverlapping();
+      if(player.currentColor == button.color || player.currentColor == "purple") button.isOverlapping(player);
     });
 
     this.physics.add.overlap(this.playerGroup, this.killArea, (player, spike)=>{
@@ -99,49 +88,15 @@ class Catch extends Phaser.Scene{
         }
       }
     });
+    // Reset panels make sure player is purple. If not, retrieve the player that DIDN'T HIT the panel
     this.physics.add.overlap(this.playerGroup, this.resetPanels, (player, panel)=>{
       if(player.currentColor == "purple") return;
-      if(player.isActive) this.playerManager.changeActivePlayer();
+      if(!player.isActive) this.playerManager.changeActivePlayer();
       this.playerManager.retrieveInactivePlayer(true);
     });
 
-    // Ball collisions
-    this.physics.add.collider(this.ballGroup, this.ground, (ball, tile)=>{
-      if(tile.properties.validSpawn != null){ // If it's a valid spawn tile, spawn a character;
-        this.playerManager.spawnRedCharacter(ball.x, ball.y);
-        this.playerManager.activePlayer.currentColor = "blue";
-        this.playerManager.canSwap = true;
-        ball.destroy();
-      }
-      else if (tile.properties.validSpawn == null){ // If it's not valid
-        ball.body.setAccelerationX(this.acceleration*3);
-        ball.body.setVelocityX(this.velXBig);
-        if(ball.body.blocked.down){ // Only pop when it hits the floor
-          this.playerManager.canSwap = true;
-          ball.destroy();
-        }
-      }
-    });
-    this.physics.add.collider(this.ballGroup, this.doorGroup, (ball, door)=>{
-      this.playerManager.canSwap = true;
-      ball.destroy();
-    });
-    
-
     // Load custom tiles that use JS prefabs from Tiled
     this.loadSpecialTiles();
-    
-    // Mouse inputs
-    this.input.mouse.disableContextMenu();
-    this.input.on('pointerdown', (pointer)=>{
-      if(pointer.rightButtonDown()){
-        if(this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer();
-      } 
-      else if(pointer.leftButtonDown()){
-        if(this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
-        else if(!this.playerGroup.isFull()) this.playerManager.throwBall();
-      }
-    })
   }
 
   update(){
@@ -150,6 +105,14 @@ class Catch extends Phaser.Scene{
     this.updateSpawnpoint();
     this.playerManager.updateLine();
 
+    // Input stuff
+    if(Phaser.Input.Keyboard.JustDown(keySplit)){
+      if(this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer();
+      else if(!this.playerGroup.isFull()) this.playerManager.spawnRedCharacter();
+    }
+    if(Phaser.Input.Keyboard.JustDown(keySwap)){
+      if(this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
+    }
     if(Phaser.Input.Keyboard.JustDown(keyReset)){
       if(this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer(true);
       this.playerManager.teleport(this.playerManager.activePlayer, this.currentSpawn.x, this.currentSpawn.y);

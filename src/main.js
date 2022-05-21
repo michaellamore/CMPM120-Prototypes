@@ -25,7 +25,7 @@ let config = {
 
 let game = new Phaser.Game(config);
 
-let keyLeft, keyRight, keyUp, keyDown, keyAction, keyReset;
+let keyLeft, keyRight, keyJump, keySplit, keySwap, keyReset;
 const width = config.width;
 const height = config.height;
 const padding = 30;

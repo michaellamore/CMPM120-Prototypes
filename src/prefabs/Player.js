@@ -42,9 +42,9 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     this.setTint(0x402751);
 
     this.state = "IDLE";
-    this.availableStates = ["IDLE", "MOVE", "JUMP", "WALLJUMP", "BUSY", "THROWN"];
+    this.availableStates = ["IDLE", "MOVE", "JUMP", "WALLJUMP", "BUSY"];
 
-    this.setPipeline('Light2D');
+    // this.setPipeline('Light2D');
     this.lightOffset = new Phaser.Math.Vector2(4, -16);
     this.spotlight = this.scene.lights.addLight(this.x + this.lightOffset.x, this.y + this.lightOffset.y, 64).setIntensity(0.5);
   }
@@ -79,7 +79,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
 
     this.setMaxVelocity(this.velXBig, this.velYBig);
 
-    if(Phaser.Input.Keyboard.JustDown(keyUp)){
+    if(Phaser.Input.Keyboard.JustDown(keyJump)){
       if(this.canJump || raycast[3]) this.transitionTo("JUMP");
       else if(!this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
     } else if(keyLeft.isDown || keyRight.isDown) this.transitionTo("MOVE");
@@ -104,7 +104,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     }
 
     // Jumping
-    if(Phaser.Input.Keyboard.JustDown(keyUp)){
+    if(Phaser.Input.Keyboard.JustDown(keyJump)){
       if(this.canJump || raycast[3]) this.transitionTo("JUMP");
       else if(!this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
     }
@@ -138,17 +138,6 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   BUSY(){
     // When busy, player literally shouldn't be able to do anything
     // To get out of busy state, it has to be externally (after tween completion, animation finsihed, etc. etc.)
-  }
-
-  THROWN(){
-    this.setBounce(0.5, 0.5);
-    this.body.setDragX(this.dragXBig);
-    if(this.body.onFloor() || this.body.onWall()){
-      this.setBounce(0, 0);
-      this.body.setAccelerationY(0);
-      this.body.setAccelerationX(0);
-      this.transitionTo("IDLE");
-    }
   }
 
   transitionTo(state){

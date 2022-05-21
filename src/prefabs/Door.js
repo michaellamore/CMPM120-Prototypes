@@ -34,17 +34,16 @@ class Door extends ImmovableBody{
     if(this.targets.length == 0 || !this.isActive) return; // No targets yet, don't do anything 
     for(const button of this.targets){
       // This stuff is to call the open/close functions ONCE after overlap with button. Without this, it would open/close repeatedly
-      let touching = !button.body.touching.none;
-      let wasTouching = !button.body.wasTouching.none;
-      if(touching && !wasTouching && button.playerOverlap){ // Enter button range
-        this.validPlayer = true;
-        if(!this.startsOpen) return this.open();
-        if(this.startsOpen) return this.close();
-      }
-      else if (!touching && wasTouching && this.validPlayer){ // Exit button range
-        this.validPlayer = false;
+      if(button.validPlayer == null) return;
+      let touching = !button.validPlayer.body.touching.none;
+      let wasTouching = !button.validPlayer.body.wasTouching.none;
+      if (!touching && wasTouching){ // Exit button range
         if(!this.startsOpen) return this.close();
         if(this.startsOpen) return this.open();
+      }
+      if(touching && !wasTouching){ // Enter button range
+        if(!this.startsOpen) return this.open();
+        if(this.startsOpen) return this.close();
       }
     }
   }
