@@ -4,20 +4,24 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0.5);
-    this.setDepth(1);
+    this.setDepth(5);
     this.body.setSize(16, 16, false);
-    this.body.setOffset(16, 16);
+    this.body.setOffset(16, 14);
     this.body.debugBodyColor = 0x468232;
 
     // Reference to stuff from the scene
     this.scene = scene;
     this.ground = this.scene.ground;
+    this.doorGroup = this.scene.doorGroup;
 
     // Raycast stuff
     this.playerRaycasts = this.scene.add.group({runChildUpdate: true});
     this.scene.physics.add.overlap(this.playerRaycasts, this.ground, (raycast, tile)=>{
       // If the tile the raycast is hitting is actual ground, tell it that it's colliding
       if(this.ground.culledTiles.includes(tile)){ raycast.isColliding(); }
+    });
+    this.scene.physics.add.overlap(this.playerRaycasts, this.doorGroup, (raycast, door)=>{
+      raycast.isColliding();
     });
     this.addRaycasts();
 
@@ -43,23 +47,19 @@ class Player extends Phaser.Physics.Arcade.Sprite{
 
     this.state = "IDLE";
     this.availableStates = ["IDLE", "MOVE", "JUMP", "WALLJUMP", "BUSY"];
-
-    // this.setPipeline('Light2D');
-    this.lightOffset = new Phaser.Math.Vector2(4, -16);
-    this.spotlight = this.scene.lights.addLight(this.x + this.lightOffset.x, this.y + this.lightOffset.y, 64).setIntensity(0.5);
+    this.anims.play(`${this.currentColor}PlayerIdle`);
   }
   
   update(){
-    this.spotlight.setPosition(this.x + this.lightOffset.x, this.y + this.lightOffset.y);
     // Change player tint depending on what player is and if they're active
     if(!this.isActive){
       this.body.setAccelerationX(0);
       this.body.setDragX(this.dragXBig);
-      this.setTexture(`${this.currentColor}PlayerInactive`);
+      if(this.anims.currentAnim.key != `${this.currentColor}PlayerInactive` && this.anims.currentAnim.key != `${this.currentColor}PlayerDie`) this.anims.play(`${this.currentColor}PlayerInactive`, false);
       this.setTint(0x757575);
       return;
     } 
-    this.setTexture(`${this.currentColor}Player`);
+    // this.setTexture(`${this.currentColor}Player`);
     this.clearTint();
 
     let raycast = this.checkRaycasts();
@@ -67,11 +67,13 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     else if (this.state == "MOVE") this.MOVE(raycast);
     else if (this.state == "JUMP") this.JUMP(raycast);
     else if (this.state == "WALLJUMP") this.WALLJUMP(raycast);
-    else if (this.state == "THROWN") this.THROWN();
     else this.IDLE(raycast);
   }
 
   IDLE(raycast){
+    // If idle's not playing, play the animation
+    if(this.anims.currentAnim.key != `${this.currentColor}PlayerIdle`) this.anims.play(`${this.currentColor}PlayerIdle`, false);
+    
     // Refresh abilities when on the floor (don't use raycast to check it)
     if(this.body.onFloor()){
       this.canJump = true;
@@ -87,9 +89,9 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   }
 
   MOVE(raycast){
-    // Refresh abilities when on the floor (don't use raycast to check it)
     if(this.body.onFloor()){
-      this.canJump = true;   
+      this.canJump = true; 
+      if(this.anims.currentAnim.key != `${this.currentColor}PlayerRun`) this.anims.play(`${this.currentColor}PlayerRun`);
     }
 
     this.body.setAccelerationX(0);
@@ -115,7 +117,9 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   }
 
   JUMP(raycast){
+    this.anims.play(`${this.currentColor}PlayerJump`, true);
     this.body.setVelocityY(this.velJumpBig);
+    this.body.setAccelerationX(0);
     this.canJump = false;
 
     if(!this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
@@ -123,11 +127,14 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   }
 
   WALLJUMP(raycast){
+    this.anims.play(`${this.currentColor}PlayerWalljump`, false);
     if(raycast[0]) {
+      this.flipX = false;
       this.body.setAccelerationX(this.accelBig);
       this.body.setVelocityX(this.velXBig);
     }
     else if(raycast[1]){
+      this.flipX = true;
       this.body.setAccelerationX(-this.accelBig);
       this.body.setVelocityX(-this.velXBig);
     }
@@ -137,7 +144,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
 
   BUSY(){
     // When busy, player literally shouldn't be able to do anything
-    // To get out of busy state, it has to be externally (after tween completion, animation finsihed, etc. etc.)
+    // To get out of busy state, it has to be externally (after tween completion, animation finished, etc. etc.)
   }
 
   transitionTo(state){
@@ -152,10 +159,10 @@ class Player extends Phaser.Physics.Arcade.Sprite{
 
   addRaycasts(){
     // Raycast is an Arcade Physics body with no texture. Extra params are target to follow, size, and offset (for placement) 
-    let ray1 = new Raycast(this.scene, this.x, this.y, null, 0, this, [6, 14], [2, 10]);
-    let ray2 = new Raycast(this.scene, this.x, this.y, null, 0, this, [6, 14], [24, 10]);
-    let ray3 = new Raycast(this.scene, this.x, this.y, null, 0, this, [14, 6], [9, 3]);
-    let ray4 = new Raycast(this.scene, this.x, this.y, null, 0, this, [14, 16], [9, 25]);
+    let ray1 = new Raycast(this.scene, this.x, this.y, null, 0, this, [6, 14], [2, 8]);
+    let ray2 = new Raycast(this.scene, this.x, this.y, null, 0, this, [6, 14], [24, 8]);
+    let ray3 = new Raycast(this.scene, this.x, this.y, null, 0, this, [14, 6], [9, 1]);
+    let ray4 = new Raycast(this.scene, this.x, this.y, null, 0, this, [14, 16], [9, 23]);
     this.playerRaycasts.addMultiple([ray1, ray2, ray3, ray4]);
   }
 

@@ -5,9 +5,7 @@ class PlayerManager {
     this.inactivePlayer = null;
     this.canSwap = true;
     this.swapDistance = 100;
-
-    // How do you change the color of the line????? Hexcode doesn't work
-    this.playerLine = this.scene.add.line(0, 0, 0, 0, 0, 0, "#468232");
+    this.playerLine = this.scene.add.line(0, 0, 0, 0, 0, 0, 0x402751).setDepth(4);
   }
 
   retrieveInactivePlayer(bypass=false){
@@ -20,38 +18,36 @@ class PlayerManager {
     }
     
     this.canSwap = false;
-    let duration = 300;
-    
     this.playerLine.alpha = 0;
-    this.tween = this.scene.tweens.add({
-      targets: this.inactivePlayer,
-      x: this.activePlayer.x,
-      y: this.activePlayer.y,
-      alpha: 0,
-      ease: "Sine.easeInOut",
-      duration: duration,
-    })
-    this.tween.on('complete', ()=>{
-      this.canSwap = true;
-      this.inactivePlayer.customDestroy()
-      this.activePlayer.currentColor = "purple";
+    this.inactivePlayer.body.setEnable(false);
+    this.inactivePlayer.state = "BUSY";
+    this.inactivePlayer.anims.play(`${this.inactivePlayer.currentColor}PlayerDie`);
+    this.activePlayer.currentColor = "purple";
+    this.inactivePlayer.on('animationcomplete', (animation, frame)=>{
+      if(animation.key == `${this.inactivePlayer.currentColor}PlayerDie`){
+        this.canSwap = true;
+        this.inactivePlayer.customDestroy()
+        Phaser.Actions.Call(this.scene.buttonGroup.getChildren(), (button)=> button.validPlayer=null);
+      }
     })
   }
 
-  teleport(target, x, y){
+  respawn(x, y){
+    this.refreshPlayers();
+    if(this.scene.playerGroup.isFull()) this.retrieveInactivePlayer(true);
     this.canSwap = false;
-    let duration = 300;
-    target.body.setEnable(false);
-    this.tween = this.scene.tweens.add({
-      targets: target,
-      x: x,
-      y: y,
-      ease: "Sine.easeInOut",
-      duration: duration,
-    })
-    this.tween.on('complete', ()=>{
-      this.canSwap = true;
-      target.body.setEnable(true);
+    this.activePlayer.body.setEnable(false);
+    this.activePlayer.state = "BUSY";
+    this.activePlayer.anims.play(`${this.activePlayer.currentColor}PlayerDie`);
+    this.activePlayer.on('animationcomplete', (animation, frame)=>{
+      if(animation.key == `${this.activePlayer.currentColor}PlayerDie`){
+        this.activePlayer.customDestroy();
+        Phaser.Actions.Call(this.scene.buttonGroup.getChildren(), (button)=> button.validPlayer=null);
+        let player = new Player(this.scene, x, y, 'purplePlayerIdle', 0, 'purple');
+        this.scene.playerGroup.add(player);
+        this.canSwap = true;
+        this.refreshPlayers();
+      }
     })
   }
 

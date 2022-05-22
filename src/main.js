@@ -1,7 +1,7 @@
 'use strict';
 
 let config = {
-  type: Phaser.WEBGL,
+  type: Phaser.AUTO,
   // This width/height makes it easier to scale up to 720p or 1080p
   width: 640,
   height: 360,

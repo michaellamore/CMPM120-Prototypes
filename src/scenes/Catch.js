@@ -6,22 +6,7 @@ class Catch extends Phaser.Scene{
   preload(){
     this.load.path = "./assets/";
 
-    // Player
-    this.load.image('bluePlayer', 'playerBlue.png');
-    this.load.image('redPlayer', 'playerRed.png');
-    this.load.image('purplePlayer', 'playerPurple.png');
-    this.load.image('bluePlayerInactive', 'playerBlueInactive.png');
-    this.load.image('redPlayerInactive', 'playerRedInactive.png');
-    this.load.image('purplePlayerInactive', 'playerPurpleInactive.png');
-
-    // Buttons, doors, and other objects
-    this.load.image('resetPanel', 'resetPanel.png');
     
-    // Tileset things
-    this.load.image('paintBG', 'paint.png');
-    this.load.image('tiles', "tiles.png");
-    this.load.tilemapTiledJSON('tilemap', 'newLevels.json');
-    this.load.json('levelJSON', 'newLevels.json')
   }
 
   create(){
@@ -46,19 +31,14 @@ class Catch extends Phaser.Scene{
     this.cameras.main.setBackgroundColor('#a8b5b2');
     this.cameraInPosition = true;
     this.cameraTarget;
-
-    // Lights :)
-    // this.lights.enable();
-    this.lights.setAmbientColor(0xc4c4c4);
     
     // Tileset stuff
     const map = this.make.tilemap({key: "tilemap", tileWidth: 8, tileHeight: 8});
     const tileset = map.addTilesetImage("tileset", 'tiles', 8, 8, 0, 0);
-    this.add.rectangle(0, 0, 2000, 2000, 0xa8b5b2); // Main BG color
-    this.background = map.createLayer('bg', tileset, 0, 0); // BG tiles
+    map.createLayer('bg', tileset, 0, 0); // BG tiles
+    map.createLayer('bg decor', tileset, 0, 0); // BG tiles
     this.add.image(0, 0, 'paintBG').setOrigin(0); // Paint background on top of the BG tiles
     this.ground = map.createLayer('ground', tileset, 0, 0);
-    // this.ground.setPipeline('Light2D');
     this.ground.setCollisionByProperty({collides: true});
     this.killArea = map.createLayer('killArea', tileset, 0, 0);
     this.killArea.setCollisionByProperty({kills: true});
@@ -81,7 +61,7 @@ class Catch extends Phaser.Scene{
     this.physics.add.overlap(this.playerGroup, this.killArea, (player, spike)=>{
       if(this.killArea.culledTiles.includes(spike)){
         if(player.currentColor == "purple"){
-          this.playerManager.teleport(player, this.currentSpawn.x, this.currentSpawn.y);
+          this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
         } else {
           if(player.isActive) this.playerManager.changeActivePlayer();
           this.playerManager.retrieveInactivePlayer(true);
@@ -114,8 +94,7 @@ class Catch extends Phaser.Scene{
       if(this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
     }
     if(Phaser.Input.Keyboard.JustDown(keyReset)){
-      if(this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer(true);
-      this.playerManager.teleport(this.playerManager.activePlayer, this.currentSpawn.x, this.currentSpawn.y);
+      this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
     }
   }
 
@@ -127,7 +106,7 @@ class Catch extends Phaser.Scene{
 
   updateCamera(){
     let playerGridPos = this.getLocationOnGrid(this.cameraTarget);
-    let target = new Phaser.Math.Vector2(playerGridPos.x*width, playerGridPos.y*height + (4*playerGridPos.y));
+    let target = new Phaser.Math.Vector2(playerGridPos.x*width, playerGridPos.y*height);
     this.cameraInPosition = false;
     let tween = this.tweens.add({
       targets: this.cameras.main,
@@ -154,15 +133,17 @@ class Catch extends Phaser.Scene{
 
   // When creating levels in Tiled, make sure the LEVELS and ID of buttons/doors are correct! Or else everything falls to shit :)
   loadSpecialTiles(){
-    let interactables = this.levelJSON.layers[2].objects;
+    let interactables = this.levelJSON.layers[3].objects;
     let availableDoors = ["blueDoor", "redDoor", "purpleDoor"];
     let availableButtons = ["blueButton", "redButton", "purpleButton"];
     let offset = new Phaser.Math.Vector2(0, -8); // Not sure why I even need an offset, Tiled is wild
 
     for(const obj of interactables){
       let currentObj;
+      // Buttons and Doors
       let currentId;
       let currentLevel;
+      // Door specific
       let startOpen = false;
 
       // Parse the JSON correctly and set it to the variables above

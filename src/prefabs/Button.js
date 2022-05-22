@@ -11,8 +11,6 @@ class Button extends ImmovableBody{
 
     let randInt = Phaser.Math.Between(0, 4);
     this.setFrame(`${this.color}${randInt}`);
-
-    this.lightOffset = new Phaser.Math.Vector2(16, 16);
   }
 
   update(){

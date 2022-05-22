@@ -8,9 +8,21 @@ class Menu extends Phaser.Scene {
     this.load.spritesheet('menuPlay', 'menuPlay.png', {frameWidth: 160, frameHeight: 80});
     this.load.audio('split', 'split.wav');
 
-    this.load.spritesheet('paintDoorSheet', 'paintDoorSheet.png', {frameWidth: 24, frameHeight: 24});
+    // Player
+    this.load.spritesheet('playerBlueSheet', 'playerBlueSheet.png', {frameWidth: 48, frameHeight: 48});
+    this.load.spritesheet('playerPurpleSheet', 'playerPurpleSheet.png', {frameWidth: 48, frameHeight: 48});
+    this.load.spritesheet('playerRedSheet', 'playerRedSheet.png', {frameWidth: 48, frameHeight: 48});
 
+    // Buttons, doors, and other objects
+    this.load.image('resetPanel', 'resetPanel.png');
+    this.load.spritesheet('paintDoorSheet', 'paintDoorSheet.png', {frameWidth: 24, frameHeight: 24});
     this.load.atlas('buttonSheet', 'buttonSheet.png', 'buttonSheet.json');
+
+    // Tileset things
+    this.load.image('paintBG', 'paint.png');
+    this.load.image('tiles', "tiles.png");
+    this.load.tilemapTiledJSON('tilemap', 'newLevels.json');
+    this.load.json('levelJSON', 'newLevels.json')
   }
 
   create() {
@@ -50,11 +62,121 @@ class Menu extends Phaser.Scene {
   }
 
   generateAnims(){
+    // Menu
     this.anims.create({
       key: 'pressedPlay', 
       frames: this.anims.generateFrameNumbers('menuPlay', {start: 0, end: 1, first: 0}),
       frameRate: 2,
     });
+
+    // Players
+    // Blue
+    this.anims.create({
+      key: 'bluePlayerIdle', 
+      frames: this.anims.generateFrameNumbers('playerBlueSheet', {start: 0, end: 2, first: 0}),
+      frameRate: 2,
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'bluePlayerRun', 
+      frames: this.anims.generateFrameNumbers('playerBlueSheet', {start: 4, end: 7, first: 4}),
+      frameRate: 10,
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'bluePlayerJump', 
+      frames: this.anims.generateFrameNumbers('playerBlueSheet', {start: 8, end: 9, first: 8}),
+      frameRate: 8,
+    });
+    this.anims.create({
+      key: 'bluePlayerWalljump', 
+      frames: this.anims.generateFrameNumbers('playerBlueSheet', {start: 12, end: 13, first: 12}),
+      frameRate: 8,
+    });
+    this.anims.create({
+      key: 'bluePlayerInactive', 
+      frames: this.anims.generateFrameNumbers('playerBlueSheet', {start: 16, end: 16, first: 16}),
+      frameRate: 10,
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'bluePlayerDie', 
+      frames: this.anims.generateFrameNumbers('playerBlueSheet', {start: 20, end: 23, first: 20}),
+      frameRate: 10,
+    });
+
+    // Purple
+    this.anims.create({
+      key: 'purplePlayerIdle', 
+      frames: this.anims.generateFrameNumbers('playerPurpleSheet', {start: 0, end: 2, first: 0}),
+      frameRate: 2,
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'purplePlayerRun', 
+      frames: this.anims.generateFrameNumbers('playerPurpleSheet', {start: 4, end: 7, first: 4}),
+      frameRate: 10,
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'purplePlayerJump', 
+      frames: this.anims.generateFrameNumbers('playerPurpleSheet', {start: 8, end: 9, first: 8}),
+      frameRate: 8,
+    });
+    this.anims.create({
+      key: 'purplePlayerWalljump', 
+      frames: this.anims.generateFrameNumbers('playerPurpleSheet', {start: 12, end: 13, first: 12}),
+      frameRate: 8,
+    });
+    this.anims.create({
+      key: 'purplePlayerInactive', 
+      frames: this.anims.generateFrameNumbers('playerPurpleSheet', {start: 16, end: 16, first: 16}),
+      frameRate: 10,
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'purplePlayerDie', 
+      frames: this.anims.generateFrameNumbers('playerPurpleSheet', {start: 20, end: 23, first: 20}),
+      frameRate: 10,
+    });
+
+    // Red
+    this.anims.create({
+      key: 'redPlayerIdle', 
+      frames: this.anims.generateFrameNumbers('playerRedSheet', {start: 0, end: 2, first: 0}),
+      frameRate: 2,
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'redPlayerRun', 
+      frames: this.anims.generateFrameNumbers('playerRedSheet', {start: 4, end: 7, first: 4}),
+      frameRate: 10,
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'redPlayerJump', 
+      frames: this.anims.generateFrameNumbers('playerRedSheet', {start: 8, end: 9, first: 8}),
+      frameRate: 8,
+    });
+    this.anims.create({
+      key: 'redPlayerWalljump', 
+      frames: this.anims.generateFrameNumbers('playerRedSheet', {start: 12, end: 13, first: 12}),
+      frameRate: 8,
+    });
+    this.anims.create({
+      key: 'redPlayerInactive', 
+      frames: this.anims.generateFrameNumbers('playerRedSheet', {start: 16, end: 16, first: 16}),
+      frameRate: 10,
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'redPlayerDie', 
+      frames: this.anims.generateFrameNumbers('playerRedSheet', {start: 20, end: 23, first: 20}),
+      frameRate: 10,
+    });
+
+
+    // Doors
     this.anims.create({
       key: 'blueDoorIdle', 
       frames: this.anims.generateFrameNumbers('paintDoorSheet', {start: 0, end: 6, first: 0}),
