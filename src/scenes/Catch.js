@@ -3,17 +3,11 @@ class Catch extends Phaser.Scene{
     super("Catch");
   }
 
-  preload(){
-    this.load.path = "./assets/";
-
-    
-  }
-
   create(){
     // Variables and such
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
-    this.currentSpawn = new Phaser.Math.Vector2(32, 300); // Change this to X and Y of level you want to test
+    this.currentSpawn = new Phaser.Math.Vector2(680, 32); // Change this to X and Y of level you want to test
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
     this.resetPanels = this.add.group();
