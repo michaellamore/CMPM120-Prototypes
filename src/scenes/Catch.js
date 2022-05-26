@@ -26,6 +26,7 @@ class Catch extends Phaser.Scene{
     keySwap = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
     keySplit = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
     keyReset = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+    keyZoom = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
 
     // Camera + flags
     this.cameras.main.setBackgroundColor('#a8b5b2');
@@ -81,7 +82,7 @@ class Catch extends Phaser.Scene{
 
   update(){
     // Camera and spawn points will automatically change based on player position
-    if(this.cameraInPosition) this.updateCamera();
+    //if(this.cameraInPosition) this.updateCamera();
     this.updateSpawnpoint();
     this.playerManager.updateLine();
 
@@ -95,6 +96,11 @@ class Catch extends Phaser.Scene{
     }
     if(Phaser.Input.Keyboard.JustDown(keyReset)){
       this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
+    }
+    if(Phaser.Input.Keyboard.JustDown(keyZoom)){
+      this.cameras.main.centerOn(160, 270);
+      this.cameras.main.setZoom(2);
+      //this.cameras.main.setPosition(150,-50);
     }
   }
 
@@ -119,6 +125,10 @@ class Catch extends Phaser.Scene{
     tween.on("complete", ()=>{ this.cameraInPosition = true; });
   }
 
+  zoomCamera(){
+
+  }
+
   updateSpawnpoint(){
     let playerGridPos = this.getLocationOnGrid(this.player);
     Phaser.Actions.Call(this.spawnPoints.getChildren(), (spawn)=>{ 
@@ -131,7 +141,7 @@ class Catch extends Phaser.Scene{
     });
   }
 
-  // When creating levels in Tiled, make sure the LEVELS and ID of buttons/doors are correct! Or else everything falls to shit :)
+  // When creating levels in Tiled, make sure the LEVELS and ID of buttons/doors are correct! Or else everything falls to shit :) - RN: XD will do
   loadSpecialTiles(){
     let interactables = this.levelJSON.layers[3].objects;
     let availableDoors = ["blueDoor", "redDoor", "purpleDoor"];
