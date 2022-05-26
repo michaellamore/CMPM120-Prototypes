@@ -82,7 +82,7 @@ class Catch extends Phaser.Scene{
 
   update(){
     // Camera and spawn points will automatically change based on player position
-    //if(this.cameraInPosition) this.updateCamera();
+    if(this.cameraInPosition) this.updateCamera();
     this.updateSpawnpoint();
     this.playerManager.updateLine();
 
@@ -98,7 +98,7 @@ class Catch extends Phaser.Scene{
       this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
     }
     if(Phaser.Input.Keyboard.JustDown(keyZoom)){
-      this.cameras.main.centerOn(160, 270);
+      this.cameras.main.centerOn(160, 490);
       this.cameras.main.setZoom(2);
       //this.cameras.main.setPosition(150,-50);
     }
