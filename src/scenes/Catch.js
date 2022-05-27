@@ -13,11 +13,12 @@ class Catch extends Phaser.Scene{
     // Variables and such
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
-    this.currentSpawn = new Phaser.Math.Vector2(32, 300); // Change this to X and Y of level you want to test
+    this.currentSpawn = new Phaser.Math.Vector2(32, 450); // Change this to X and Y of level you want to test
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
     this.resetPanels = this.add.group();
     this.spawnPoints = this.add.group();  
+    this.tutorialActiveCheck = true;
 
     // Input
     keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -78,6 +79,8 @@ class Catch extends Phaser.Scene{
 
     // Load custom tiles that use JS prefabs from Tiled
     this.loadSpecialTiles();
+
+    this.playerManager.spawnRedCharacterSpecial(1165,585);
   }
 
   update(){
@@ -87,9 +90,11 @@ class Catch extends Phaser.Scene{
     this.playerManager.updateLine();
 
     // Input stuff
-    if(Phaser.Input.Keyboard.JustDown(keySplit)){
-      if(this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer();
-      else if(!this.playerGroup.isFull()) this.playerManager.spawnRedCharacter();
+    if(this.tutorialActiveCheck == false) {
+      if(Phaser.Input.Keyboard.JustDown(keySplit)){
+        if(this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer();
+        else if(!this.playerGroup.isFull()) this.playerManager.spawnRedCharacter();
+      }
     }
     if(Phaser.Input.Keyboard.JustDown(keySwap)){
       if(this.playerGroup.isFull()) this.playerManager.changeActivePlayer();

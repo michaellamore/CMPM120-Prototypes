@@ -65,6 +65,20 @@ class PlayerManager {
     this.activePlayer.currentColor = "blue";
   }
 
+  spawnRedCharacterSpecial(targetX, targetY){
+    this.refreshPlayers();
+    if(!this.canSwap) return;
+    this.scene.sound.play('split');
+
+    // add red player
+    let redPlayer = new Player(this.scene, targetX, targetY, 'player', 0, 'red');
+    redPlayer.isActive = false;
+    this.scene.playerGroup.add(redPlayer);
+
+    // update active player
+    this.activePlayer.currentColor = "blue";
+  }
+
   changeActivePlayer(){
     if(!this.canSwap) return;
     Phaser.Actions.Call(this.scene.playerGroup.getChildren(), (player)=>{
