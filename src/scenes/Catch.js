@@ -3,15 +3,8 @@ class Catch extends Phaser.Scene{
     super("Catch");
   }
 
-  preload(){
-    this.load.path = "./assets/";
-
-    
-  }
-
   create(){
     // Variables and such
-    this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
     this.currentSpawn = new Phaser.Math.Vector2(32, 450); // Change this to X and Y of level you want to test
     this.doorGroup = this.add.group({runChildUpdate: true});
@@ -43,7 +36,7 @@ class Catch extends Phaser.Scene{
     this.add.image(0, 0, 'paintBG').setOrigin(0); // Paint background on top of the BG tiles
     this.ground = map.createLayer('ground', tileset, 0, 0);
     this.ground.setCollisionByProperty({collides: true});
-    this.killArea = map.createLayer('killArea', tileset, 0, 0);
+    this.killArea = map.createLayer('killArea', tileset, 0, 0).setDepth(1);
     this.killArea.setCollisionByProperty({kills: true});
 
     
@@ -58,7 +51,7 @@ class Catch extends Phaser.Scene{
     this.physics.add.collider(this.playerGroup, this.ground);
     this.physics.add.collider(this.playerGroup, this.doorGroup);
     this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=>{
-      if(player.currentColor == button.color || player.currentColor == "purple") button.isOverlapping(player);
+      if(player.currentColor == button.color || player.currentColor == "purple") button.isOverlapping();
     });
 
     //kill area
@@ -163,7 +156,7 @@ class Catch extends Phaser.Scene{
   }
 
   updateSpawnpoint(){
-    let playerGridPos = this.getLocationOnGrid(this.player);
+    let playerGridPos = this.getLocationOnGrid(this.playerManager.activePlayer);
     Phaser.Actions.Call(this.spawnPoints.getChildren(), (spawn)=>{ 
       let spawnPos = spawn.getPos();
       let spawnGridPos = this.getLocationOnGrid(spawnPos);

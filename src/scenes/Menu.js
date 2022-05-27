@@ -184,12 +184,12 @@ class Menu extends Phaser.Scene {
       repeat: -1
     });
     this.anims.create({
-      key: 'blueDoorClose', 
+      key: 'blueDoorOpen', 
       frames: this.anims.generateFrameNumbers('paintDoorSheet', {start: 7, end: 12, first: 7}),
       frameRate: 16,
     });
     this.anims.create({
-      key: 'blueDoorOpen', 
+      key: 'blueDoorClose', 
       frames: this.anims.generateFrameNumbers('paintDoorSheet', {start: 12, end: 7, first: 12}),
       frameRate: 16,
     });
@@ -200,12 +200,12 @@ class Menu extends Phaser.Scene {
       repeat: -1
     });
     this.anims.create({
-      key: 'redDoorClose', 
+      key: 'redDoorOpen', 
       frames: this.anims.generateFrameNumbers('paintDoorSheet', {start: 21, end: 26, first: 21}),
       frameRate: 16,
     });
     this.anims.create({
-      key: 'redDoorOpen', 
+      key: 'redDoorClose', 
       frames: this.anims.generateFrameNumbers('paintDoorSheet', {start: 26, end: 21, first: 26}),
       frameRate: 16,
     });
@@ -216,12 +216,12 @@ class Menu extends Phaser.Scene {
       repeat: -1
     });
     this.anims.create({
-      key: 'purpleDoorClose', 
+      key: 'purpleDoorOpen', 
       frames: this.anims.generateFrameNumbers('paintDoorSheet', {start: 35, end: 40, first: 35}),
       frameRate: 16,
     });
     this.anims.create({
-      key: 'purpleDoorOpen', 
+      key: 'purpleDoorClose', 
       frames: this.anims.generateFrameNumbers('paintDoorSheet', {start: 40, end: 35, first: 40}),
       frameRate: 16,
     });
