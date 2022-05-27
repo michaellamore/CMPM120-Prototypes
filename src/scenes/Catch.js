@@ -19,6 +19,7 @@ class Catch extends Phaser.Scene{
     this.resetPanels = this.add.group();
     this.spawnPoints = this.add.group();  
     this.tutorialActiveCheck = true;
+    this.tutorialActiveCheck2 = true;
 
     // Input
     keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -60,9 +61,14 @@ class Catch extends Phaser.Scene{
       if(player.currentColor == button.color || player.currentColor == "purple") button.isOverlapping(player);
     });
 
+    //kill area
     this.physics.add.overlap(this.playerGroup, this.killArea, (player, spike)=>{
       if(this.killArea.culledTiles.includes(spike)){
-        if(player.currentColor == "purple"){
+        if(this.tutorialActiveCheck) {
+          this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
+          this.playerManager.spawnRedCharacterSpecial(1165,585);
+        }
+        else if(player.currentColor == "purple"){
           this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
         } else {
           if(player.isActive) this.playerManager.changeActivePlayer();
@@ -85,7 +91,9 @@ class Catch extends Phaser.Scene{
 
   update(){
     // Camera and spawn points will automatically change based on player position
-    if(this.cameraInPosition) this.updateCamera();
+    //if(this.tutorialActiveCheck == false) {
+      if(this.cameraInPosition) this.updateCamera();
+    //}
     this.updateSpawnpoint();
     this.playerManager.updateLine();
 
@@ -102,11 +110,31 @@ class Catch extends Phaser.Scene{
     if(Phaser.Input.Keyboard.JustDown(keyReset)){
       this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
     }
-    if(Phaser.Input.Keyboard.JustDown(keyZoom)){
-      this.cameras.main.centerOn(160, 490);
-      this.cameras.main.setZoom(2);
-      //this.cameras.main.setPosition(150,-50);
-    }
+
+    //if(this.tutorialActiveCheck) {
+    //  this.cameras.main.centerOn(160, 450);
+    //  this.cameras.main.setZoom(2);
+    //  if(this.player.x > 320 && this.player.y < 540) {
+    //    this.cameras.main.centerOn(480, 450);
+    //  }
+    //  if(this.player.x > 640 && this.player.y < 540) {
+    //    this.cameras.main.centerOn(800, 450);
+    //  }
+    //  if(this.player.x > 960 && this.player.y < 540) {
+    //    this.cameras.main.centerOn(1120, 450);
+    //  }
+    //  if(this.player.x > 1280 && this.player.y < 540) {
+    //    this.tutorialActiveCheck = false;
+    //    this.cameras.main.setZoom(1);
+    //  }
+    //}
+    //if(this.tutorialActiveCheck2 && this.tutorialActiveCheck == false) {
+    //  if(this.player.x < 1280 && this.player.y < 730) {
+    //    this.cameras.main.setZoom(2);
+    //    this.cameras.main.centerOn(1120,640);
+    //  }
+    //}
+    
   }
 
   getLocationOnGrid(obj){
