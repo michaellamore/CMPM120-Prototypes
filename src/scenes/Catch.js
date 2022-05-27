@@ -5,13 +5,12 @@ class Catch extends Phaser.Scene{
 
   create(){
     // Variables and such
-    this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
-    this.currentSpawn = new Phaser.Math.Vector2(680, 32); // Change this to X and Y of level you want to test
+    this.currentSpawn = new Phaser.Math.Vector2(32, 340); // Change this to X and Y of level you want to test
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
     this.resetPanels = this.add.group();
-    this.spawnPoints = this.add.group();  
+    this.spawnPoints = this.add.group();
 
     // Input
     keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -34,7 +33,7 @@ class Catch extends Phaser.Scene{
     this.add.image(0, 0, 'paintBG').setOrigin(0); // Paint background on top of the BG tiles
     this.ground = map.createLayer('ground', tileset, 0, 0);
     this.ground.setCollisionByProperty({collides: true});
-    this.killArea = map.createLayer('killArea', tileset, 0, 0);
+    this.killArea = map.createLayer('killArea', tileset, 0, 0).setDepth(1);
     this.killArea.setCollisionByProperty({kills: true});
 
     
@@ -49,7 +48,7 @@ class Catch extends Phaser.Scene{
     this.physics.add.collider(this.playerGroup, this.ground);
     this.physics.add.collider(this.playerGroup, this.doorGroup);
     this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=>{
-      if(player.currentColor == button.color || player.currentColor == "purple") button.isOverlapping(player);
+      if(player.currentColor == button.color || player.currentColor == "purple") button.isOverlapping();
     });
 
     this.physics.add.overlap(this.playerGroup, this.killArea, (player, spike)=>{
@@ -114,7 +113,7 @@ class Catch extends Phaser.Scene{
   }
 
   updateSpawnpoint(){
-    let playerGridPos = this.getLocationOnGrid(this.player);
+    let playerGridPos = this.getLocationOnGrid(this.playerManager.activePlayer);
     Phaser.Actions.Call(this.spawnPoints.getChildren(), (spawn)=>{ 
       let spawnPos = spawn.getPos();
       let spawnGridPos = this.getLocationOnGrid(spawnPos);

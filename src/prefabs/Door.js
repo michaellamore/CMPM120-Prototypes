@@ -18,11 +18,9 @@ class Door extends ImmovableBody{
     this.stayOpen = false; // Flag to keep doors opened (after opening purple door)
     this.isActive = true;
     this.currentState = "closed";
-    this.validPlayer = false;
-    this.canChangeState = true;
 
     this.anims.play(`${this.color}DoorIdle`);
-    this.on('animationcomplete', this.closeToIdle, this);
+    this.on('animationcomplete', this.handleEndAnim, this);
 
     /* 
       A lot of this spaghetti logic is me just trying to call functions when a valid player enters and exits a button. 
@@ -33,33 +31,20 @@ class Door extends ImmovableBody{
 
   update(){
     if(this.targets.length == 0 || !this.isActive) return; // No targets yet, don't do anything 
-    for(const button of this.targets){
-      if(button.validPlayer == null){
-        this.deactivate();
-        this.canChangeState = false;
-        return
-      }
-      let touching = !button.validPlayer.body.touching.none;
-      let wasTouching = !button.validPlayer.body.wasTouching.none;
-      if (!touching && wasTouching){ // Exit button range
-        this.canChangeState = true;
-        this.deactivate();
-      }
-      if(touching && !wasTouching){ // Enter button range
-        this.canChangeState = true;
-        this.activate();
+    for(const button of this.targets){ // If ANY of the buttons with the same level/color are overlapped, activate
+      if(button.playerOverlapping){
+        return this.activate();
       }
     }
+    this.deactivate();
   }
 
   deactivate(){
-    if(!this.canChangeState) return;
     if(!this.startsOpen) return this.close();
     if(this.startsOpen) return this.open();
   }
 
   activate(){
-    if(!this.canChangeState) return;
     if(!this.startsOpen) return this.open();
     if(this.startsOpen) return this.close();
   }
@@ -69,9 +54,8 @@ class Door extends ImmovableBody{
     this.currentState = "open";
     this.body.debugBodyColor = 0x468232;
     this.body.setEnable(false);
-    this.anims.play(`${this.color}DoorClose`, false);
-    // if(this.color == "purple" && !this.stayOpen) this.openAllDoors();
-    if(this.color == "purple" && !this.stayOpen) this.stayOpen = true;
+    this.anims.play(`${this.color}DoorOpen`, false);
+    if(this.color == "purple" && !this.stayOpen){ this.stayOpen = true; }
   }
 
   close(){
@@ -80,13 +64,18 @@ class Door extends ImmovableBody{
     this.currentState = "closed";
     this.body.debugBodyColor = 0xa53030;
     this.body.setEnable(true);
-    this.anims.play(`${this.color}DoorOpen`, false);
+    this.anims.play(`${this.color}DoorClose`, false);
   }
 
-  // After opening the door, transition to playing the idle animation 
-  closeToIdle(animation, frame){
-    if(animation.key == `${this.color}DoorOpen`){
-      this.anims.play(`${this.color}DoorIdle`)
+  
+  handleEndAnim(animation, frame){
+    // After opening the door, transition to playing the idle animation 
+    if(animation.key == `${this.color}DoorClose`){
+      this.anims.play(`${this.color}DoorIdle`);
+    }
+    // If the door is purple and player activated it, destroy button and door 
+    if(animation.key == `${this.color}DoorOpen` && this.color == "purple"){
+      this.destroyPurple();
     }
   }
 
@@ -102,15 +91,24 @@ class Door extends ImmovableBody{
     this.targets = output;
   }
 
-  // is called after a purple door is opened
-  openAllDoors(){
-    Phaser.Actions.Call(this.scene.doorGroup.getChildren(), (door)=>{
-      if(door.level == this.level){
-        door.stayOpen = true;
-        if(door.currentState == "closed") door.open();
-        door.body.setEnable(false);
-        door.isActive = false;
-      }
-    })
+  async destroyPurple(){
+    await this.destroyPurpleButtons();
+    this.destroy();
   }
+
+   destroyPurpleButtons(){
+    Phaser.Actions.Call(this.targets, (button)=>{
+      button.destroy();
+    });
+  }
+  // openAllDoors(){
+  //   Phaser.Actions.Call(this.scene.doorGroup.getChildren(), (door)=>{
+  //     if(door.level == this.level){
+  //       door.stayOpen = true;
+  //       if(door.currentState == "closed") door.open();
+  //       door.body.setEnable(false);
+  //       door.isActive = false;
+  //     }
+  //   })
+  // }
 }
