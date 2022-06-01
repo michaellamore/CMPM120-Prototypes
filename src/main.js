@@ -10,7 +10,6 @@ let config = {
   zoom: 2,
   fps:{
     target: 60,
-    forceSetTimeOut: true
   },
   physics: {
     default: 'arcade',

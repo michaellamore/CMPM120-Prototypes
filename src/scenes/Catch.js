@@ -2,8 +2,20 @@ class Catch extends Phaser.Scene{
   constructor(){
     super("Catch");
   }
-
   create(){
+    // Scene transition (from Menu)
+    this.sceneTransition = this.add.image(-width, 0, 'sceneTransition').setOrigin(0).setDepth(10);
+    this.sceneTransition.scale = 10;
+    this.tween = this.tweens.add({
+      targets: this.sceneTransition,
+      x: width,
+      ease: "Sine.easeOut",
+      duration: 2000,
+      onComplete: ()=>{
+        this.sceneTransition.destroy();
+      }
+    });
+
     // Variables and such
     this.levelJSON = this.cache.json.get('levelJSON');
     this.currentSpawn = new Phaser.Math.Vector2(32, 340); // Change this to X and Y of level you want to test
@@ -36,7 +48,6 @@ class Catch extends Phaser.Scene{
     this.killArea = map.createLayer('killArea', tileset, 0, 0).setDepth(1);
     this.killArea.setCollisionByProperty({kills: true});
 
-    
     // Player
     this.playerGroup = this.add.group({maxSize: 2, runChildUpdate: true});
     this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0, 'purple');
@@ -48,7 +59,7 @@ class Catch extends Phaser.Scene{
     this.physics.add.collider(this.playerGroup, this.ground);
     this.physics.add.collider(this.playerGroup, this.doorGroup);
     this.physics.add.overlap(this.playerGroup, this.buttonGroup, (player, button)=>{
-      if(player.currentColor == button.color || player.currentColor == "purple") button.isOverlapping();
+      if(player.currentColor == button.color) button.isOverlapping();
     });
 
     this.physics.add.overlap(this.playerGroup, this.killArea, (player, spike)=>{
@@ -76,7 +87,7 @@ class Catch extends Phaser.Scene{
     // Camera and spawn points will automatically change based on player position
     if(this.cameraInPosition) this.updateCamera();
     this.updateSpawnpoint();
-    this.playerManager.updateLine();
+    this.playerManager.update();
 
     // Input stuff
     if(Phaser.Input.Keyboard.JustDown(keySplit)){

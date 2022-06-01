@@ -2,6 +2,7 @@ class Door extends ImmovableBody{
   constructor(scene, x, y, texture, frame, color="", id=0, level=0, startsOpen){
     super(scene, x, y, texture, frame);
     this.body.setSize(24, 24, false);
+    this.body.debugBodyColor = 0xa53030;
     this.scene = scene;
 
     // Offset b/c of the way we did it in Tiled
@@ -33,8 +34,11 @@ class Door extends ImmovableBody{
     if(this.targets.length == 0 || !this.isActive) return; // No targets yet, don't do anything 
     for(const button of this.targets){ // If ANY of the buttons with the same level/color are overlapped, activate
       if(button.playerOverlapping){
+        button.anims.resume();
         return this.activate();
       }
+      // If button isn't purple, pause animation when player exits button range
+      if(button.color != "purple") button.anims.pause();
     }
     this.deactivate();
   }
@@ -75,7 +79,7 @@ class Door extends ImmovableBody{
     }
     // If the door is purple and player activated it, destroy button and door 
     if(animation.key == `${this.color}DoorOpen` && this.color == "purple"){
-      this.destroyPurple();
+      Phaser.Actions.Call(this.targets, (button)=>{ button.destroy(); });
     }
   }
 
@@ -89,17 +93,6 @@ class Door extends ImmovableBody{
       output.push(button);
     })
     this.targets = output;
-  }
-
-  async destroyPurple(){
-    await this.destroyPurpleButtons();
-    this.destroy();
-  }
-
-   destroyPurpleButtons(){
-    Phaser.Actions.Call(this.targets, (button)=>{
-      button.destroy();
-    });
   }
   // openAllDoors(){
   //   Phaser.Actions.Call(this.scene.doorGroup.getChildren(), (door)=>{

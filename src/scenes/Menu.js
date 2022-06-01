@@ -4,19 +4,25 @@ class Menu extends Phaser.Scene {
   }
 
   preload(){
-    this.load.path = './assets/'
-    this.load.spritesheet('menuPlay', 'menuPlay.png', {frameWidth: 160, frameHeight: 80});
-    this.load.audio('split', 'split.wav');
+    this.load.path = './assets/';
+
+    // Menu 
+    this.load.image('logo', 'logo.png');
+    this.load.image('menuLevel', 'menuLevel.png');
+    this.load.image('sceneTransition', 'sceneTransition.png');
 
     // Player
     this.load.spritesheet('playerBlueSheet', 'playerBlueSheet.png', {frameWidth: 48, frameHeight: 48});
     this.load.spritesheet('playerPurpleSheet', 'playerPurpleSheet.png', {frameWidth: 48, frameHeight: 48});
     this.load.spritesheet('playerRedSheet', 'playerRedSheet.png', {frameWidth: 48, frameHeight: 48});
+    this.load.spritesheet('playerIndicatorSheet', 'playerIndicatorSheet.png', {frameWidth: 8, frameHeight: 10});
+    this.load.image('smoke', 'smoke.png');
+    this.load.audio('split', 'split.wav');
 
     // Buttons, doors, and other objects
     this.load.image('resetPanel', 'resetPanel.png');
     this.load.spritesheet('paintDoorSheet', 'paintDoorSheet.png', {frameWidth: 24, frameHeight: 24});
-    this.load.atlas('buttonSheet', 'buttonSheet.png', 'buttonSheet.json');
+    this.load.spritesheet('buttonAnimsSheet', 'buttonAnimsSheet.png', {frameWidth: 32, frameHeight: 34});
 
     // Tileset things
     this.load.image('paintBG', 'paint.png');
@@ -28,48 +34,76 @@ class Menu extends Phaser.Scene {
   create() {
     this.generateAnims();
 
-    this.playButton = this.add.sprite(width/2, 130, 'menuPlay').setOrigin(0.5).setInteractive();
-    this.playButton.setTint(0x7d7d7d);
-    this.tempTitle = this.add.text(width/2, 60, 'MISSING COLORS', {fontSize: "30px"}).setOrigin(0.5);
+    // Input
+    keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    keyRight = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    keyJump = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    keySwap = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
+    keySplit = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+    keyReset = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
+    this.menuLevel = this.add.image(0, 0, 'menuLevel').setOrigin(0);
+    this.tempTitle = this.add.image(width/2, 100, 'logo').setOrigin(0.5);
+    this.tweens.add({
+      targets: this.tempTitle,
+      scale: 1.2,
+      ease: "Sine.easeInOut",
+      duration: 1000,
+      repeat: -1,
+      yoyo: true
+    })
+    this.sceneTransition = this.add.image(-width*3, 0, 'sceneTransition').setOrigin(0).setDepth(10);
+    this.sceneTransition.scale = 10;
+    this.transitionFlag = false;
 
-    // On mouse input, do stuff
-    this.playButton.on("pointerover", () => {
-      this.playButton.setTint(0xffffff);
-    })
-    this.playButton.on("pointerout", () => {
-      this.playButton.setTint(0x7d7d7d);
-    })
-    this.playButton.on("pointerup", () => {
-      this.playButton.anims.play('pressedPlay');
-      this.sound.play('split');
+    // Player
+    this.player = new Player(this, width/2, 300, 'player', 0, 'blue');
+    this.player.body.setCollideWorldBounds(true);
+
+    // Create collisions for player
+    this.bodyGroup = this.add.group();
+    this.physics.add.collider(this.player, this.bodyGroup);
+    this.physics.add.overlap(this.player.playerRaycasts, this.bodyGroup, (raycast, body)=>{ raycast.isColliding() });
+    for(let i=0; i<4; i++){
+      let body = new ImmovableBody(this, 0, 0, null, 0);
+      body.alpha = 0;
+      this.bodyGroup.add(body);
+    }
+    let bodyArr = this.bodyGroup.getChildren();
+    bodyArr[0].setSize(640, 8).setPosition(width/2-16, height-28);
+    bodyArr[1].setSize(640, 8).setPosition(width/2-16, 188);  
+    bodyArr[2].setSize(8, 200).setPosition(-4, 240);   
+    bodyArr[3].setSize(8, 200).setPosition(612, 240); 
+  }
+
+  update() {
+    this.player.update();
+    if(this.transitionFlag) return;
+    if(Phaser.Input.Keyboard.JustDown(keyLeft) || Phaser.Input.Keyboard.JustDown(keyRight)){
+      this.transitionFlag = true;
       this.transitionToPlay();
-    })
+    }
   }
 
   transitionToPlay(){
     this.tween = this.tweens.add({
-      targets: [this.playButton, this.tempTitle],
-      y: '-=400',
-      ease: "Sine.easeInOut",
-      duration: 1000,
-      repeat: 0,
-      yoyo: false
-    })
-    this.tween.on('complete', () => {
-      this.scene.start(this.scene.start("Catch"));
+      targets: this.sceneTransition,
+      x: -width,
+      ease: "Sine.easeOut",
+      duration: 2000,
+      onComplete: ()=> {this.scene.start("Catch");}
     });
   }
 
   generateAnims(){
-    // Menu
+    // Players
     this.anims.create({
-      key: 'pressedPlay', 
-      frames: this.anims.generateFrameNumbers('menuPlay', {start: 0, end: 1, first: 0}),
-      frameRate: 2,
+      key: 'playerIndicator', 
+      frames: this.anims.generateFrameNumbers('playerIndicatorSheet', {start: 0, end: 7, first: 0}),
+      frameRate: 16,
+      repeat: -1
     });
 
-    // Players
     // Blue
     this.anims.create({
       key: 'bluePlayerIdle', 
@@ -224,6 +258,25 @@ class Menu extends Phaser.Scene {
       key: 'purpleDoorClose', 
       frames: this.anims.generateFrameNumbers('paintDoorSheet', {start: 40, end: 35, first: 40}),
       frameRate: 16,
+    });
+
+    // Buttons
+    this.anims.create({
+      key: 'blueButtonActive', 
+      frames: this.anims.generateFrameNumbers('buttonAnimsSheet', {start: 0, end: 5, first: 0}),
+      frameRate: 6,
+      repeat:-1
+    });
+    this.anims.create({
+      key: 'redButtonActive', 
+      frames: this.anims.generateFrameNumbers('buttonAnimsSheet', {start: 6, end: 11, first: 6}),
+      frameRate: 6,
+      repeat:-1
+    });
+    this.anims.create({
+      key: 'purpleButtonActive', 
+      frames: this.anims.generateFrameNumbers('buttonAnimsSheet', {start: 12, end: 17, first: 12}),
+      frameRate: 10,
     });
   }
 }

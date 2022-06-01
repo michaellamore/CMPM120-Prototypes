@@ -9,8 +9,14 @@ class Button extends ImmovableBody{
     this.level = level;
     this.playerOverlapping = false;
 
-    let randInt = Phaser.Math.Between(0, 4);
-    this.setFrame(`${this.color}${randInt}`);
+    this.anims.play(`${this.color}ButtonActive`);
+    this.anims.pause();
+
+    // If this is a purple button, deactivate once the animation is complete
+    this.on('animationcomplete', (animation, frame)=>{
+      if(animation.key != `purpleButtonActive`) return;
+      this.destroy();
+    }, this);
   }
 
   update(){

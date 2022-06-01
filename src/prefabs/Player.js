@@ -25,6 +25,25 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     });
     this.addRaycasts();
 
+    // Particles (for dust)
+    this.particles = this.scene.add.particles('smoke');
+    this.emitter = this.particles.createEmitter({
+      x: this.x,
+      y: this.y,
+      follow: this,
+      followOffset: {
+        x: 0,
+        y: 6
+      },
+      angle: { min: 240, max: 300 },
+      alpha: {start: 1, end: 0.5},
+      scale: {min: 0.5, max: 1},
+      speed: 3,
+      lifespan: 200,
+      gravityY: 100,
+      on: false
+    });
+
     // Flags
     this.isActive = true;
     this.canJump = true;
@@ -59,7 +78,6 @@ class Player extends Phaser.Physics.Arcade.Sprite{
       this.setTint(0x757575);
       return;
     } 
-    // this.setTexture(`${this.currentColor}Player`);
     this.clearTint();
 
     let raycast = this.checkRaycasts();
@@ -74,7 +92,6 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     // If idle's not playing, play the animation
     if(this.anims.currentAnim.key != `${this.currentColor}PlayerIdle`) this.anims.play(`${this.currentColor}PlayerIdle`, false);
     
-    // Refresh abilities when on the floor (don't use raycast to check it)
     if(this.body.onFloor()){
       this.canJump = true;
     }
@@ -93,7 +110,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
       this.canJump = true; 
       if(this.anims.currentAnim.key != `${this.currentColor}PlayerRun`) this.anims.play(`${this.currentColor}PlayerRun`);
     }
-
+    
     this.body.setAccelerationX(0);
     this.body.setDragX(this.dragXBig);
 
@@ -117,7 +134,10 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   }
 
   JUMP(raycast){
+    this.squashAndStretch();
+    this.particles.emitParticle();
     this.anims.play(`${this.currentColor}PlayerJump`, true);
+
     this.body.setVelocityY(this.velJumpBig);
     this.body.setAccelerationX(0);
     this.canJump = false;
@@ -127,18 +147,22 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   }
 
   WALLJUMP(raycast){
+    this.squashAndStretch();
+    this.particles.emitParticle();
     this.anims.play(`${this.currentColor}PlayerWalljump`, false);
-    if(raycast[0]) {
+
+    if(raycast[0] || this.body.blocked.left) {
       this.flipX = false;
       this.body.setAccelerationX(this.accelBig);
       this.body.setVelocityX(this.velXBig);
     }
-    else if(raycast[1]){
+    else if(raycast[1] || this.body.blocked.right){
       this.flipX = true;
       this.body.setAccelerationX(-this.accelBig);
       this.body.setVelocityX(-this.velXBig);
     }
     this.body.setVelocityY(this.velJumpBig);
+    this.canJump = false; 
     this.transitionTo("MOVE");
   }
 
@@ -155,6 +179,15 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     } else {
       console.error(`State "${state}" is not valid`);
     }
+  }
+
+  squashAndStretch(){
+    this.scene.tweens.add({
+      targets: this,
+      scaleX: {from: 1, to: 0.8},
+      duration: 100,
+      yoyo: true
+    })
   }
 
   addRaycasts(){
