@@ -87,6 +87,9 @@ class Catch extends Phaser.Scene{
     this.loadSpecialTiles();
 
     this.playerManager.spawnRedCharacterSpecial(1165,585);
+    
+    this.keySplitTimer = 0;
+    this.keySplitBool = true;
   }
 
   update(){
@@ -98,42 +101,52 @@ class Catch extends Phaser.Scene{
     this.playerManager.updateLine();
 
     // Input stuff
-    if(this.tutorialActiveCheck == false) {
-      if(Phaser.Input.Keyboard.JustDown(keySplit)){
+
+    // short-tap of S should swap
+    // long-tap of S should split/combine
+    if(Phaser.Input.Keyboard.DownDuration(keySplit, 750)) {
+      this.keySplitTimer = keySplit.getDuration();  //set button down timer
+    }else if(Phaser.Input.Keyboard.JustUp(keySplit) && this.keySplitTimer < 700){
+      if(this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
+    }else if(this.keySplitTimer > 700 && this.keySplitBool) {
+      this.keySplitBool = false;
+      if(this.tutorialActiveCheck == false) {
         if(this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer();
         else if(!this.playerGroup.isFull()) this.playerManager.spawnRedCharacter();
       }
+
     }
-    if(Phaser.Input.Keyboard.JustDown(keySwap)){
-      if(this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
+    if(this.keySplitTimer < 500){
+      this.keySplitBool = true;
     }
+
     if(Phaser.Input.Keyboard.JustDown(keyReset)){
       this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
     }
 
-    //if(this.tutorialActiveCheck) {
-    //  this.cameras.main.centerOn(160, 450);
-    //  this.cameras.main.setZoom(2);
-    //  if(this.player.x > 320 && this.player.y < 540) {
-    //    this.cameras.main.centerOn(480, 450);
-    //  }
-    //  if(this.player.x > 640 && this.player.y < 540) {
-    //    this.cameras.main.centerOn(800, 450);
-    //  }
-    //  if(this.player.x > 960 && this.player.y < 540) {
-    //    this.cameras.main.centerOn(1120, 450);
-    //  }
-    //  if(this.player.x > 1280 && this.player.y < 540) {
-    //    this.tutorialActiveCheck = false;
-    //    this.cameras.main.setZoom(1);
-    //  }
-    //}
-    //if(this.tutorialActiveCheck2 && this.tutorialActiveCheck == false) {
-    //  if(this.player.x < 1280 && this.player.y < 730) {
-    //    this.cameras.main.setZoom(2);
-    //    this.cameras.main.centerOn(1120,640);
-    //  }
-    //}
+    if(this.tutorialActiveCheck) {
+      this.cameras.main.centerOn(160, 450);
+      this.cameras.main.setZoom(2);
+      if(this.player.x > 320 && this.player.y < 540) {
+        this.cameras.main.centerOn(480, 450);
+      }
+      if(this.player.x > 640 && this.player.y < 540) {
+        this.cameras.main.centerOn(800, 450);
+      }
+      if(this.player.x > 960 && this.player.y < 540) {
+        this.cameras.main.centerOn(1120, 450);
+      }
+      if(this.player.x > 1280 && this.player.y < 540) {
+        this.tutorialActiveCheck = false;
+        this.cameras.main.setZoom(1);
+      }
+    }
+    if(this.tutorialActiveCheck2 && this.tutorialActiveCheck == false) {
+      if(this.player.x < 1280 && this.player.y < 730) {
+        this.cameras.main.setZoom(2);
+        this.cameras.main.centerOn(1120,640);
+      }
+    }
     
   }
 
