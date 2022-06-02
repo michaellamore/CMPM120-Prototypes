@@ -13,7 +13,7 @@ class Catch extends Phaser.Scene{
     // Variables and such
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
-    this.currentSpawn = new Phaser.Math.Vector2(32, 450); // Change this to X and Y of level you want to test
+    this.currentSpawn = new Phaser.Math.Vector2(42, 116); // Change this to X and Y of level you want to test
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
     this.resetPanels = this.add.group();
@@ -124,29 +124,29 @@ class Catch extends Phaser.Scene{
       this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
     }
 
-    if(this.tutorialActiveCheck) {
-      this.cameras.main.centerOn(160, 450);
-      this.cameras.main.setZoom(2);
-      if(this.player.x > 320 && this.player.y < 540) {
-        this.cameras.main.centerOn(480, 450);
-      }
-      if(this.player.x > 640 && this.player.y < 540) {
-        this.cameras.main.centerOn(800, 450);
-      }
-      if(this.player.x > 960 && this.player.y < 540) {
-        this.cameras.main.centerOn(1120, 450);
-      }
-      if(this.player.x > 1280 && this.player.y < 540) {
-        this.tutorialActiveCheck = false;
-        this.cameras.main.setZoom(1);
-      }
-    }
-    if(this.tutorialActiveCheck2 && this.tutorialActiveCheck == false) {
-      if(this.player.x < 1280 && this.player.y < 730) {
-        this.cameras.main.setZoom(2);
-        this.cameras.main.centerOn(1120,640);
-      }
-    }
+    //if(this.tutorialActiveCheck) {
+    //  this.cameras.main.centerOn(160, 450);
+    //  this.cameras.main.setZoom(2);
+    //  if(this.player.x > 320 && this.player.y < 540) {
+    //    this.cameras.main.centerOn(480, 450);
+    //  }
+    //  if(this.player.x > 640 && this.player.y < 540) {
+    //    this.cameras.main.centerOn(800, 450);
+    //  }
+    //  if(this.player.x > 960 && this.player.y < 540) {
+    //    this.cameras.main.centerOn(1120, 450);
+    //  }
+    //  if(this.player.x > 1280 && this.player.y < 540) {
+    //    //this.tutorialActiveCheck = false;
+    //    this.cameras.main.setZoom(1);
+    //  }
+    //}
+    //if(this.tutorialActiveCheck2 && this.tutorialActiveCheck == false) {
+    //  if(this.player.x < 1280 && this.player.y < 730 && this.player.y > 540) {
+    //    this.cameras.main.setZoom(2);
+    //    this.cameras.main.centerOn(1120,640);
+    //  }
+    //}
     
   }
 
