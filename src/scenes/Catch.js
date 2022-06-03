@@ -13,13 +13,13 @@ class Catch extends Phaser.Scene{
     // Variables and such
     this.physics.world.gravity.y = 1400;
     this.levelJSON = this.cache.json.get('levelJSON');
-    this.currentSpawn = new Phaser.Math.Vector2(42, 116); // Change this to X and Y of level you want to test
+    this.currentSpawn = new Phaser.Math.Vector2(1375,505); // Change this to X and Y of level you want to test
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
     this.resetPanels = this.add.group();
     this.spawnPoints = this.add.group();  
-    this.tutorialActiveCheck = true;
-    this.tutorialActiveCheck2 = true;
+    this.tutorialActiveCheck = false;
+    this.tutorialActiveCheck2 = false;
 
     // Input
     keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -66,7 +66,7 @@ class Catch extends Phaser.Scene{
       if(this.killArea.culledTiles.includes(spike)){
         if(this.tutorialActiveCheck) {
           this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
-          this.playerManager.spawnRedCharacterSpecial(1165,585);
+          this.playerManager.spawnRedCharacterSpecial(1375,505);
         }
         else if(player.currentColor == "purple"){
           this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
@@ -86,7 +86,7 @@ class Catch extends Phaser.Scene{
     // Load custom tiles that use JS prefabs from Tiled
     this.loadSpecialTiles();
 
-    this.playerManager.spawnRedCharacterSpecial(1165,585);
+    //this.playerManager.spawnRedCharacterSpecial(1165,585);
     
     this.keySplitTimer = 0;
     this.keySplitBool = true;
@@ -101,7 +101,6 @@ class Catch extends Phaser.Scene{
     this.playerManager.updateLine();
 
     // Input stuff
-
     // short-tap of S should swap
     // long-tap of S should split/combine
     if(Phaser.Input.Keyboard.DownDuration(keySplit, 750)) {
