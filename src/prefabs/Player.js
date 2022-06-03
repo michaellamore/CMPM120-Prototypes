@@ -98,7 +98,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
 
     this.setMaxVelocity(this.velXBig, this.velYBig);
 
-    if(Phaser.Input.Keyboard.JustDown(keyJump)){
+    if(Phaser.Input.Keyboard.JustDown(keyJump) || Phaser.Input.Keyboard.JustDown(keyJump2)){
       if(this.canJump || raycast[3]) this.transitionTo("JUMP");
       else if(!this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
     } else if(keyLeft.isDown || keyRight.isDown) this.transitionTo("MOVE");
@@ -123,7 +123,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     }
 
     // Jumping
-    if(Phaser.Input.Keyboard.JustDown(keyJump)){
+    if(Phaser.Input.Keyboard.JustDown(keyJump) || Phaser.Input.Keyboard.JustDown(keyJump2)){
       if(this.canJump || raycast[3]) this.transitionTo("JUMP");
       else if(!this.body.onFloor() && (raycast[0] || raycast[1] || this.body.onWall())) this.transitionTo("WALLJUMP");
     }

@@ -38,6 +38,7 @@ class Menu extends Phaser.Scene {
     keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
     keyRight = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     keyJump = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    keyJump2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
     keySwap = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
     keySplit = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
     keyReset = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
