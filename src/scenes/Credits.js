@@ -71,4 +71,11 @@ class Credits extends Phaser.Scene {
     this.player.update();
     this.door.update();
   }
+
+  findSound(soundKey){
+    for (const sound of this.sound.sounds){
+      if (sound.key == soundKey) return true
+    }
+    return false;
+  }
 }
