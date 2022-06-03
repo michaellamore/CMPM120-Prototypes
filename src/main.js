@@ -10,6 +10,7 @@ let config = {
   zoom: 2,
   fps:{
     target: 60,
+    forceSetTimeOut: true
   },
   physics: {
     default: 'arcade',
@@ -19,7 +20,7 @@ let config = {
       debug: false
     }
   },
-  scene: [Menu, Catch]
+  scene: [Menu, Catch, Credits]
 }
 
 let game = new Phaser.Game(config);

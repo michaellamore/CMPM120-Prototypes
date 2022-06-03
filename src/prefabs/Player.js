@@ -136,6 +136,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   JUMP(raycast){
     this.squashAndStretch();
     this.particles.emitParticle();
+    this.scene.sound.play('sfxJump', {volume: 0.2});
     this.anims.play(`${this.currentColor}PlayerJump`, true);
 
     this.body.setVelocityY(this.velJumpBig);
@@ -149,6 +150,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
   WALLJUMP(raycast){
     this.squashAndStretch();
     this.particles.emitParticle();
+    this.scene.sound.play('sfxJump', {volume: 0.2});
     this.anims.play(`${this.currentColor}PlayerWalljump`, false);
 
     if(raycast[0] || this.body.blocked.left) {

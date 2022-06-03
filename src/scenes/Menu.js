@@ -1,15 +1,41 @@
 class Menu extends Phaser.Scene {
   constructor() {
-    super ("menuScene");
+    super ("Menu");
   }
 
   preload(){
+    let progressBar = this.add.graphics();
+    let progressBox = this.add.graphics();
+    progressBox.fillStyle(0x222222, 0.8);
+    progressBox.fillRect(80, 240, 480, 30);
+    this.load.on('progress', function(value){
+      progressBar.clear();
+      progressBar.fillStyle(0xffffff, 1);
+      progressBar.fillRect(90, 250, 460*value, 10);
+    });
+    this.load.on('complete', function(){
+      progressBar.destroy();
+      progressBox.destroy();
+    });
+
     this.load.path = './assets/';
+
+    // Audio
+    this.load.audio('bgm01', 'bgm01.ogg');
+    this.load.audio('sfxActivate', 'mc_activateSFX.ogg');
+    this.load.audio('sfxDeactivate', 'mc_deactivateSFX.ogg');
+    this.load.audio('sfxMerge', 'mc_mergeShortSFX.ogg');
+    this.load.audio('sfxWin', 'mc_winSFX.ogg');
+    this.load.audio('sfxContact', 'mc_contactSFX.ogg');
+    this.load.audio('sfxSplit', 'mc_splitSFX.ogg');
+    this.load.audio('sfxStart', 'mc_startSFX.ogg');
+    this.load.audio('sfxJump', 'mc_jumpSFX.ogg');
 
     // Menu 
     this.load.image('logo', 'logo.png');
     this.load.image('menuLevel', 'menuLevel.png');
     this.load.image('sceneTransition', 'sceneTransition.png');
+    this.load.image('creditLevel', 'creditLevel.png');
 
     // Player
     this.load.spritesheet('playerBlueSheet', 'playerBlueSheet.png', {frameWidth: 48, frameHeight: 48});
@@ -17,15 +43,15 @@ class Menu extends Phaser.Scene {
     this.load.spritesheet('playerRedSheet', 'playerRedSheet.png', {frameWidth: 48, frameHeight: 48});
     this.load.spritesheet('playerIndicatorSheet', 'playerIndicatorSheet.png', {frameWidth: 8, frameHeight: 10});
     this.load.image('smoke', 'smoke.png');
-    this.load.audio('split', 'split.wav');
 
     // Buttons, doors, and other objects
     this.load.image('resetPanel', 'resetPanel.png');
     this.load.spritesheet('paintDoorSheet', 'paintDoorSheet.png', {frameWidth: 24, frameHeight: 24});
     this.load.spritesheet('buttonAnimsSheet', 'buttonAnimsSheet.png', {frameWidth: 32, frameHeight: 34});
+    this.load.spritesheet('endCanvas', 'endingCanvasSheet.png', {frameWidth: 374, frameHeight: 208});
 
     // Tileset things
-    this.load.image('paintBG', 'paint.png');
+    this.load.image('paint', "paint.png");
     this.load.image('tiles', "tiles.png");
     this.load.tilemapTiledJSON('tilemap', 'newLevels.json');
     this.load.json('levelJSON', 'newLevels.json')
@@ -33,6 +59,11 @@ class Menu extends Phaser.Scene {
 
   create() {
     this.generateAnims();
+
+    // Audio
+    if(!this.findSound('bgm01')){
+      this.sound.add('bgm01', {volume: 0.1, loop: true}).play();
+    }
 
     // Input
     keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -43,6 +74,17 @@ class Menu extends Phaser.Scene {
     keySplit = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
     keyReset = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
+    // Scene transition
+    this.sceneTransition = this.add.image(-width, 0, 'sceneTransition').setOrigin(0).setDepth(10);
+    this.sceneTransition.scale = 10;
+    this.tweens.add({
+      targets: this.sceneTransition,
+      x: width,
+      ease: "Sine.easeOut",
+      duration: 2000,
+    });
+
+    // Level
     this.menuLevel = this.add.image(0, 0, 'menuLevel').setOrigin(0);
     this.tempTitle = this.add.image(width/2, 100, 'logo').setOrigin(0.5);
     this.tweens.add({
@@ -53,8 +95,6 @@ class Menu extends Phaser.Scene {
       repeat: -1,
       yoyo: true
     })
-    this.sceneTransition = this.add.image(-width*3, 0, 'sceneTransition').setOrigin(0).setDepth(10);
-    this.sceneTransition.scale = 10;
     this.transitionFlag = false;
 
     // Player
@@ -75,25 +115,41 @@ class Menu extends Phaser.Scene {
     bodyArr[1].setSize(640, 8).setPosition(width/2-16, 188);  
     bodyArr[2].setSize(8, 200).setPosition(-4, 240);   
     bodyArr[3].setSize(8, 200).setPosition(612, 240); 
+
+    this.button = new Button(this, 535, 336, 'blueButtonIdle', 0, "blue", 1, 1);
+    this.buttonGroup = this.add.group({runChildUpdate: true});
+    this.buttonGroup.add(this.button);
+    this.door = new Door(this, 0, 400, 'blueDoorIdle', 0, "blue", 1, 1, false);
+    this.door.targets.push(this.button);
+
+    this.physics.add.overlap(this.player, this.button, (player, button)=>{
+      button.isOverlapping();
+      if(this.transitionFlag) return;
+      this.transitionFlag = true;
+      this.transitionToPlay();
+    });
   }
 
   update() {
     this.player.update();
-    if(this.transitionFlag) return;
-    if(Phaser.Input.Keyboard.JustDown(keyLeft) || Phaser.Input.Keyboard.JustDown(keyRight)){
-      this.transitionFlag = true;
-      this.transitionToPlay();
-    }
+    this.door.update();
   }
 
   transitionToPlay(){
     this.tween = this.tweens.add({
       targets: this.sceneTransition,
-      x: -width,
+      x: {from: -width*3, to: -width},
       ease: "Sine.easeOut",
       duration: 2000,
       onComplete: ()=> {this.scene.start("Catch");}
     });
+  }
+
+  findSound(soundKey){
+    for (const sound of this.sound.sounds){
+      if (sound.key == soundKey) return true
+    }
+    return false;
   }
 
   generateAnims(){

@@ -41,6 +41,7 @@ class PlayerManager {
     this.inactivePlayer.body.setEnable(false);
     this.inactivePlayer.state = "BUSY";
     this.activePlayer.currentColor = "purple";
+    this.scene.sound.play('sfxMerge', {volume: 0.2});
 
     this.inactivePlayer.anims.play(`${this.inactivePlayer.currentColor}PlayerDie`);
     this.inactivePlayer.on('animationcomplete', (animation, frame)=>{
@@ -78,13 +79,13 @@ class PlayerManager {
     })
   }
 
-  spawnRedCharacter(){
+  spawnRedCharacter(x, y){
     this.refreshPlayers();
     if(!this.canSwap) return;
-    this.scene.sound.play('split');
+    this.scene.sound.play('sfxSplit', {volume: 0.2});
 
     // add red player
-    let redPlayer = new Player(this.scene, this.activePlayer.x, this.activePlayer.y, 'player', 0, 'red');
+    let redPlayer = new Player(this.scene, x, y, 'player', 0, 'red');
     redPlayer.isActive = false;
     this.scene.playerGroup.add(redPlayer);
 
@@ -95,7 +96,7 @@ class PlayerManager {
   spawnRedCharacterSpecial(targetX, targetY){
     this.refreshPlayers();
     if(!this.canSwap) return;
-    this.scene.sound.play('split');
+    this.scene.sound.play('sfxSplit', {volume: 0.2});
 
     // add red player
     let redPlayer = new Player(this.scene, targetX, targetY, 'player', 0, 'red');

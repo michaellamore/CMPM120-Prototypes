@@ -59,7 +59,13 @@ class Door extends ImmovableBody{
     this.body.debugBodyColor = 0x468232;
     this.body.setEnable(false);
     this.anims.play(`${this.color}DoorOpen`, false);
-    if(this.color == "purple" && !this.stayOpen){ this.stayOpen = true; }
+    if(this.color == "purple" && !this.stayOpen){ 
+      this.stayOpen = true; 
+      if(!this.scene.findSound('sfxWin')) this.scene.sound.play('sfxWin', {volume: 0.5});
+    }
+    if(this.color != "purple"){
+      if(!this.scene.findSound('sfxActivate')) this.scene.sound.play('sfxActivate', {volume: 0.2});
+    }
   }
 
   close(){
@@ -69,6 +75,9 @@ class Door extends ImmovableBody{
     this.body.debugBodyColor = 0xa53030;
     this.body.setEnable(true);
     this.anims.play(`${this.color}DoorClose`, false);
+    if(this.color != "purple"){
+      if(!this.scene.findSound('sfxDeactivate')) this.scene.sound.play('sfxDeactivate', {volume: 0.2});
+    }
   }
 
   
@@ -94,14 +103,4 @@ class Door extends ImmovableBody{
     })
     this.targets = output;
   }
-  // openAllDoors(){
-  //   Phaser.Actions.Call(this.scene.doorGroup.getChildren(), (door)=>{
-  //     if(door.level == this.level){
-  //       door.stayOpen = true;
-  //       if(door.currentState == "closed") door.open();
-  //       door.body.setEnable(false);
-  //       door.isActive = false;
-  //     }
-  //   })
-  // }
 }
