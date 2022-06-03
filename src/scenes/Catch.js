@@ -19,12 +19,17 @@ class Catch extends Phaser.Scene{
     // Variables and such
     this.levelJSON = this.cache.json.get('levelJSON');
     this.currentSpawn = new Phaser.Math.Vector2(56,127); // Change this to X and Y of level you want to test
+    //this.currentSpawn = new Phaser.Math.Vector2(560,515);
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
     this.resetPanels = this.add.group();
     this.spawnPoints = this.add.group();  
     this.tutorialActiveCheck = true;
-    this.tutorialActiveCheck2 = false;
+    this.tutorialActiveCheck2 = true;
+    this.tutorialActiveCheck3 = true; 
+    this.specialRedSpawn1 = true;
+    this.specialRedSpawn2 = false;
+    this.specialRedSpawn3 = false;
 
     // Input
     keyLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -98,9 +103,9 @@ class Catch extends Phaser.Scene{
 
   update(){
     // Camera and spawn points will automatically change based on player position
-    //if(this.tutorialActiveCheck == false) {
+    if(this.tutorialActiveCheck == false) {
       if(this.cameraInPosition) this.updateCamera();
-    //}
+    }
     this.updateSpawnpoint();
     this.playerManager.update();
 
@@ -110,12 +115,12 @@ class Catch extends Phaser.Scene{
     if(Phaser.Input.Keyboard.DownDuration(keySplit, 750)) {
       this.keySplitTimer = keySplit.getDuration();  //set button down timer
     }else if(Phaser.Input.Keyboard.JustUp(keySplit) && this.keySplitTimer < 700){
-      if(this.tutorialActiveCheck == false) {
+      if(this.tutorialActiveCheck2 == false) {
         if(this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
       }
     }else if(this.keySplitTimer > 700 && this.keySplitBool) {
       this.keySplitBool = false;
-      if(this.tutorialActiveCheck == false) {
+      if(this.tutorialActiveCheck3 == false) {
         if(this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer();
         else if(!this.playerGroup.isFull()) this.playerManager.spawnRedCharacter();
       }
@@ -129,29 +134,70 @@ class Catch extends Phaser.Scene{
       this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
     }
 
-    //if(this.tutorialActiveCheck) {
-    //  this.cameras.main.centerOn(160, 450);
-    //  this.cameras.main.setZoom(2);
-    //  if(this.player.x > 320 && this.player.y < 540) {
-    //    this.cameras.main.centerOn(480, 450);
-    //  }
-    //  if(this.player.x > 640 && this.player.y < 540) {
-    //    this.cameras.main.centerOn(800, 450);
-    //  }
-    //  if(this.player.x > 960 && this.player.y < 540) {
-    //    this.cameras.main.centerOn(1120, 450);
-    //  }
-    //  if(this.player.x > 1280 && this.player.y < 540) {
-    //    //this.tutorialActiveCheck = false;
-    //    this.cameras.main.setZoom(1);
-    //  }
-    //}
-    //if(this.tutorialActiveCheck2 && this.tutorialActiveCheck == false) {
-    //  if(this.player.x < 1280 && this.player.y < 730 && this.player.y > 540) {
-    //    this.cameras.main.setZoom(2);
-    //    this.cameras.main.centerOn(1120,640);
-    //  }
-    //}
+    if(this.tutorialActiveCheck) {
+      this.cameras.main.centerOn(160, 90);
+      this.cameras.main.setZoom(2);
+      if(this.player.x > 320 && this.player.y < 180) {
+        this.cameras.main.centerOn(480, 90);
+      }
+      if(this.player.x > 640 && this.player.y < 180) {
+        this.cameras.main.centerOn(800, 90);
+      }
+      if(this.player.x > 960 && this.player.y < 180) {
+        this.cameras.main.centerOn(1120, 90);
+      }
+      if(this.player.x > 1280 && this.player.y < 180) {
+        this.cameras.main.centerOn(1440, 90);
+      }
+      if(this.player.x > 1600 && this.player.y < 180) {
+        this.cameras.main.centerOn(1760, 90);
+      }
+      if(this.player.x > 1600 && this.player.y < 640 && this.player.y > 180) {
+        this.cameras.main.centerOn(1760, 270);
+      }
+      if(this.player.x > 1280 && this.player.x < 1600 && this.player.y < 360 && this.player.y > 180) {
+        this.cameras.main.centerOn(1440, 270);
+      }
+      if(this.player.x > 960 && this.player.x < 1280 && this.player.y < 360 && this.player.y > 180) {
+        this.tutorialActiveCheck2 = false;
+        this.cameras.main.centerOn(1120, 270);
+        if(this.specialRedSpawn1 == true) {
+          this.specialRedSpawn1 = false;
+          this.specialRedSpawn2 = true;
+          this.playerManager.inactivePlayer.customDestroy();
+          this.playerManager.spawnRedCharacterSpecial(1199,240);
+        }
+      }
+      if(this.player.x > 640 && this.player.x < 960 && this.player.y < 360 && this.player.y > 180) {
+        this.cameras.main.setZoom(2);
+        this.cameras.main.centerOn(800, 270);
+        if(this.specialRedSpawn2 == true) {
+          this.specialRedSpawn1 = true;
+          this.specialRedSpawn2 = false;
+          this.specialRedSpawn3 = true;
+          this.playerManager.inactivePlayer.customDestroy();
+          this.playerManager.spawnRedCharacterSpecial(800,240);
+        }
+      }
+      if(this.player.x < 640 && this.player.y < 640 && this.player.y > 180) {
+        this.cameras.main.setZoom(1);
+        this.cameras.main.centerOn(320, 360);
+        if(this.specialRedSpawn3 == true) {
+          this.specialRedSpawn1 = false;
+          this.specialRedSpawn2 = true;
+          this.specialRedSpawn3 = false;
+          this.playerManager.inactivePlayer.customDestroy();
+          this.playerManager.spawnRedCharacterSpecial(560,230);
+        }
+      }
+      if(this.player.y > 376) {
+        this.tutorialActiveCheck3 = false;
+      }
+      if(this.playerManager.activePlayer.x > 640 && this.playerManager.activePlayer.x < 960 && this.playerManager.activePlayer.y < 720 && this.playerManager.activePlayer.y > 400) {
+        this.cameras.main.setZoom(1);
+        this.tutorialActiveCheck = false;
+      }
+    }
     
   }
 
@@ -174,10 +220,6 @@ class Catch extends Phaser.Scene{
       repeat: 0,
     })
     tween.on("complete", ()=>{ this.cameraInPosition = true; });
-  }
-
-  zoomCamera(){
-
   }
 
   updateSpawnpoint(){
