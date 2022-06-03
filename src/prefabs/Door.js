@@ -61,10 +61,10 @@ class Door extends ImmovableBody{
     this.anims.play(`${this.color}DoorOpen`, false);
     if(this.color == "purple" && !this.stayOpen){ 
       this.stayOpen = true; 
-      this.scene.sound.play('sfxWin', {volume: 0.2});
+      if(!this.scene.findSound('sfxWin')) this.scene.sound.play('sfxWin', {volume: 0.5});
     }
     if(this.color != "purple"){
-      this.scene.sound.play('sfxActivate', {volume: 0.2});
+      if(!this.scene.findSound('sfxActivate')) this.scene.sound.play('sfxActivate', {volume: 0.2});
     }
   }
 
@@ -76,7 +76,7 @@ class Door extends ImmovableBody{
     this.body.setEnable(true);
     this.anims.play(`${this.color}DoorClose`, false);
     if(this.color != "purple"){
-      this.scene.sound.play('sfxDeactivate', {volume: 0.2});
+      if(!this.scene.findSound('sfxDeactivate')) this.scene.sound.play('sfxDeactivate', {volume: 0.2});
     }
   }
 

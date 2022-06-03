@@ -82,7 +82,7 @@ class PlayerManager {
   spawnRedCharacter(x, y){
     this.refreshPlayers();
     if(!this.canSwap) return;
-    this.scene.sound.play('split');
+    this.scene.sound.play('sfxSplit', {volume: 0.2});
 
     // add red player
     let redPlayer = new Player(this.scene, x, y, 'player', 0, 'red');
@@ -96,7 +96,7 @@ class PlayerManager {
   spawnRedCharacterSpecial(targetX, targetY){
     this.refreshPlayers();
     if(!this.canSwap) return;
-    this.scene.sound.play('split');
+    this.scene.sound.play('sfxSplit', {volume: 0.2});
 
     // add red player
     let redPlayer = new Player(this.scene, targetX, targetY, 'player', 0, 'red');

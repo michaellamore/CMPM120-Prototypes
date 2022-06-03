@@ -106,7 +106,7 @@ class Catch extends Phaser.Scene{
     // Ending stuff pls ignore :)
     this.endTrigger1 = false;
     this.endTrigger2 = false;
-    this.endCanvas = this.add.sprite(width/2, height/2 + (height*2), 'endCanvas', 0);
+    this.endCanvas = this.add.sprite(width/2 + width, height/2 + (height*2), 'endCanvas', 0);
     Phaser.Actions.Call(this.buttonGroup.getChildren(), (button)=>{
       if(button.level != 99) return;
       if(button.color == "purple"){
@@ -290,6 +290,13 @@ class Catch extends Phaser.Scene{
         this.currentSpawn.y = spawnPos.y;
       }
     });
+  }
+
+  findSound(soundKey){
+    for (const sound of this.sound.sounds){
+      if (sound.key == soundKey) return true
+    }
+    return false;
   }
 
   // When creating levels in Tiled, make sure the LEVELS and ID of buttons/doors are correct! Or else everything falls to shit :) - RN: XD will do

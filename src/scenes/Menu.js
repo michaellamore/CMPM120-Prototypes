@@ -24,8 +24,12 @@ class Menu extends Phaser.Scene {
     this.load.audio('bgm01', 'bgm01.ogg');
     this.load.audio('sfxActivate', 'mc_activateSFX.ogg');
     this.load.audio('sfxDeactivate', 'mc_deactivateSFX.ogg');
-    this.load.audio('sfxMerge', 'mc_mergeSFX.ogg');
+    this.load.audio('sfxMerge', 'mc_mergeShortSFX.ogg');
     this.load.audio('sfxWin', 'mc_winSFX.ogg');
+    this.load.audio('sfxContact', 'mc_contactSFX.ogg');
+    this.load.audio('sfxSplit', 'mc_splitSFX.ogg');
+    this.load.audio('sfxStart', 'mc_startSFX.ogg');
+    this.load.audio('sfxJump', 'mc_jumpSFX.ogg');
 
     // Menu 
     this.load.image('logo', 'logo.png');
@@ -39,7 +43,6 @@ class Menu extends Phaser.Scene {
     this.load.spritesheet('playerRedSheet', 'playerRedSheet.png', {frameWidth: 48, frameHeight: 48});
     this.load.spritesheet('playerIndicatorSheet', 'playerIndicatorSheet.png', {frameWidth: 8, frameHeight: 10});
     this.load.image('smoke', 'smoke.png');
-    this.load.audio('split', 'split.wav');
 
     // Buttons, doors, and other objects
     this.load.image('resetPanel', 'resetPanel.png');
