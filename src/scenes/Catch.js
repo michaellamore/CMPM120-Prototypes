@@ -2,18 +2,31 @@ class Catch extends Phaser.Scene{
   constructor(){
     super("Catch");
   }
+
+  preload(){
+    // Tileset stuff
+    const map = this.make.tilemap({key: "tilemap", tileWidth: 8, tileHeight: 8});
+    const tileset = map.addTilesetImage("tileset", 'tiles', 8, 8, 0, 0);
+    map.createLayer('bgDecor', tileset, 0, 0);
+    this.ground = map.createLayer('ground', tileset, 0, 0);
+    this.ground.setCollisionByProperty({collides: true});
+
+    this.add.image(0, 0, 'paint').setOrigin(0); // Custom paint image
+    
+    this.killArea = map.createLayer('killArea', tileset, 0, 0).setDepth(1);
+    this.killArea.setCollisionByProperty({kills: true});
+  }
+
   create(){
     // Scene transition (from Menu)
     this.sceneTransition = this.add.image(-width, 0, 'sceneTransition').setOrigin(0).setDepth(10);
     this.sceneTransition.scale = 10;
-    this.tween = this.tweens.add({
+    this.tweens.add({
       targets: this.sceneTransition,
       x: width,
       ease: "Sine.easeOut",
       duration: 2000,
-      onComplete: ()=>{
-        this.sceneTransition.destroy();
-      }
+      onComplete: ()=>{this.sceneTransition.alpha = 0;}
     });
 
     // Variables and such
@@ -36,23 +49,13 @@ class Catch extends Phaser.Scene{
     this.cameras.main.setBackgroundColor('#a8b5b2');
     this.cameraInPosition = true;
     this.cameraTarget;
-    
-    // Tileset stuff
-    const map = this.make.tilemap({key: "tilemap", tileWidth: 8, tileHeight: 8});
-    const tileset = map.addTilesetImage("tileset", 'tiles', 8, 8, 0, 0);
-    map.createLayer('bg', tileset, 0, 0); // BG tiles
-    map.createLayer('bg decor', tileset, 0, 0); // BG tiles
-    this.add.image(0, 0, 'paintBG').setOrigin(0); // Paint background on top of the BG tiles
-    this.ground = map.createLayer('ground', tileset, 0, 0);
-    this.ground.setCollisionByProperty({collides: true});
-    this.killArea = map.createLayer('killArea', tileset, 0, 0).setDepth(1);
-    this.killArea.setCollisionByProperty({kills: true});
 
     // Player
     this.playerGroup = this.add.group({maxSize: 2, runChildUpdate: true});
-    this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0, 'purple');
+    this.player = new Player(this, this.currentSpawn.x, this.currentSpawn.y, 'player', 0, 'blue');
     this.playerGroup.add(this.player);
     this.playerManager = new PlayerManager(this);
+    this.playerManager.spawnRedCharacter(1688, 488);
     this.playerManager.refreshPlayers();
 
     // Player collisions
@@ -81,6 +84,21 @@ class Catch extends Phaser.Scene{
 
     // Load custom tiles that use JS prefabs from Tiled
     this.loadSpecialTiles();
+
+    // Ending stuff pls ignore :)
+    this.endTrigger1 = false;
+    this.endTrigger2 = false;
+    this.endCanvas = this.add.sprite(width/2, height/2 + (height*2), 'endCanvas', 0);
+    Phaser.Actions.Call(this.buttonGroup.getChildren(), (button)=>{
+      if(button.level != 99) return;
+      if(button.color == "purple"){
+        this.endPurpleButton = button;
+        button.alpha = 0
+        button.body.setEnable(false);
+      } 
+      else if (button.color == "red"){ this.endRedButton = button; }
+      else if (button.color == "blue"){ this.endBlueButton = button; }
+    });
   }
 
   update(){
@@ -92,13 +110,54 @@ class Catch extends Phaser.Scene{
     // Input stuff
     if(Phaser.Input.Keyboard.JustDown(keySplit)){
       if(this.playerGroup.isFull()) this.playerManager.retrieveInactivePlayer();
-      else if(!this.playerGroup.isFull()) this.playerManager.spawnRedCharacter();
+      else if(!this.playerGroup.isFull()) this.playerManager.spawnRedCharacter(this.playerManager.activePlayer.x, this.playerManager.activePlayer.y);
     }
     if(Phaser.Input.Keyboard.JustDown(keySwap)){
       if(this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
     }
     if(Phaser.Input.Keyboard.JustDown(keyReset)){
       this.playerManager.respawn(this.currentSpawn.x, this.currentSpawn.y);
+    }
+
+    // Ending stuff pls ignore :)
+    if(this.endRedButton.playerOverlapping && this.endBlueButton.playerOverlapping && !this.endTrigger1){
+      // If both blue/red are triggered, spawn final, purple button
+      this.endCanvas.setFrame(3);
+      this.endTrigger1 = true;
+      this.tweens.add({ // Get rid of blue/red buttons
+        targets: [this.endRedButton, this.endBlueButton],
+        y: "+=64",
+        ease: "Sine.easeInOut",
+        duration: 500,
+      })
+      this.endPurpleButton.y += 64;
+      this.endPurpleButton.alpha = 1;
+      this.endPurpleButton.body.setEnable();
+      this.tweens.add({ // Add purple button
+        targets: this.endPurpleButton,
+        y: "-=64",
+        ease: "Sine.easeInOut",
+        duration: 500,
+      })
+    }
+    else if (this.endPurpleButton.playerOverlapping && !this.endTrigger2){
+      this.endCanvas.setFrame(4);
+      this.endTrigger2 = true;
+      this.sceneTransition.alpha = 1;
+      this.time.delayedCall(3000, ()=>{
+        this.tweens.add({
+          targets: this.sceneTransition,
+          x: {from: -width*3, to: -width},
+          ease: "Sine.easeOut",
+          duration: 2000,
+          onComplete: ()=>{this.scene.start("Credits");}
+        });
+      }, null, this);
+    }
+    else if (this.endRedButton.playerOverlapping && !this.endTrigger1) this.endCanvas.setFrame(1);
+    else if (this.endBlueButton.playerOverlapping && !this.endTrigger1) this.endCanvas.setFrame(2);
+    else {
+      if(!this.endTrigger1) this.endCanvas.setFrame(0);
     }
   }
 
