@@ -18,12 +18,12 @@ class Catch extends Phaser.Scene{
 
     // Variables and such
     this.levelJSON = this.cache.json.get('levelJSON');
-    this.currentSpawn = new Phaser.Math.Vector2(1375,505); // Change this to X and Y of level you want to test
+    this.currentSpawn = new Phaser.Math.Vector2(56,127); // Change this to X and Y of level you want to test
     this.doorGroup = this.add.group({runChildUpdate: true});
     this.buttonGroup = this.add.group({runChildUpdate: true});
     this.resetPanels = this.add.group();
     this.spawnPoints = this.add.group();  
-    this.tutorialActiveCheck = false;
+    this.tutorialActiveCheck = true;
     this.tutorialActiveCheck2 = false;
 
     // Input
@@ -90,7 +90,7 @@ class Catch extends Phaser.Scene{
     // Load custom tiles that use JS prefabs from Tiled
     this.loadSpecialTiles();
 
-    //this.playerManager.spawnRedCharacterSpecial(1165,585);
+    this.playerManager.spawnRedCharacterSpecial(1199,240);
     
     this.keySplitTimer = 0;
     this.keySplitBool = true;
@@ -110,7 +110,9 @@ class Catch extends Phaser.Scene{
     if(Phaser.Input.Keyboard.DownDuration(keySplit, 750)) {
       this.keySplitTimer = keySplit.getDuration();  //set button down timer
     }else if(Phaser.Input.Keyboard.JustUp(keySplit) && this.keySplitTimer < 700){
-      if(this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
+      if(this.tutorialActiveCheck == false) {
+        if(this.playerGroup.isFull()) this.playerManager.changeActivePlayer();
+      }
     }else if(this.keySplitTimer > 700 && this.keySplitBool) {
       this.keySplitBool = false;
       if(this.tutorialActiveCheck == false) {
