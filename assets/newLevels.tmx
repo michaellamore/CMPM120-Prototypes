@@ -1482,13 +1482,13 @@
     <property name="purpleButton" type="int" value="1"/>
    </properties>
   </object>
-  <object id="89" gid="231" x="633.833" y="434.833" width="8" height="8">
+  <object id="89" gid="231" x="633.833" y="488.167" width="8" height="8">
    <properties>
     <property name="level" type="int" value="1"/>
     <property name="purpleDoor" type="int" value="1"/>
    </properties>
   </object>
-  <object id="90" gid="231" x="632.833" y="459.333" width="8" height="8">
+  <object id="90" gid="231" x="632.833" y="512.667" width="8" height="8">
    <properties>
     <property name="level" type="int" value="1"/>
     <property name="purpleDoor" type="int" value="1"/>
